@@ -11,8 +11,11 @@ export {
   CardHeader,
   CardTitle,
 } from "#components/card";
+export { Checkbox } from "#components/checkbox";
 export { Input } from "#components/input";
 export { Label } from "#components/label";
+export { RadioGroup, RadioGroupItem } from "#components/radio-group";
+export { Textarea } from "#components/textarea";
 export {
   ThemeProvider,
   type ThemeProviderProps,
