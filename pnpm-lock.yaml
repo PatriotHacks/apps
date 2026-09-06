@@ -23,6 +23,9 @@ importers:
       '@patriothacks/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@patriothacks/emails':
+        specifier: workspace:*
+        version: link:../../packages/emails
       '@patriothacks/ui':
         specifier: workspace:*
         version: link:../../packages/ui
