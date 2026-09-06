@@ -112,3 +112,30 @@ export {
 } from "./validate-graph";
 
 export { orphanedQuestionIds } from "./discard";
+
+export {
+  CheckboxesField,
+  DateField,
+  DropdownField,
+  FieldShell,
+  FileUploadField,
+  GridCheckboxField,
+  GridMultipleChoiceField,
+  LinearScaleField,
+  MultipleChoiceField,
+  PENDING_UPLOAD_PATH_PREFIX,
+  ParagraphField,
+  QUESTION_FIELD_COMPONENTS,
+  QuestionField,
+  ShortAnswerField,
+  TimeField,
+  fieldControlId,
+  fieldDescribedBy,
+  fieldLabelId,
+  formatFileSize,
+  gridColumnHeaderId,
+  gridRowHeaderId,
+  type FieldShellProps,
+  type QuestionFieldComponent,
+  type QuestionFieldProps,
+} from "./render";
