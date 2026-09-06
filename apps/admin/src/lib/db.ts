@@ -4,7 +4,7 @@ import {
   type DrizzleSupabaseClient,
 } from "@patriothacks/database";
 
-import { requireClaims, requireStaff } from "@/lib/auth";
+import { requireAdmin, requireClaims, requireStaff } from "@/lib/auth";
 
 /**
  * A connection carrying the caller's JWT, for work that spans more than one
@@ -31,4 +31,18 @@ export async function queryAsStaff<T>(run: (tx: DatabaseTransaction) => Promise<
   } finally {
     await db.end();
   }
+}
+
+/**
+ * The same thing behind an admin check, and not merely a convenience.
+ *
+ * `email_unsubscribes` is admin-only under RLS. A broadcast excludes
+ * unsubscribed users with a `not exists` against that table — which, run as an
+ * organizer, sees no rows, matches nobody, and mails everyone who opted out.
+ * Refusing the connection to a non-admin is what stops a read policy from
+ * quietly becoming a send bug.
+ */
+export async function queryAsAdmin<T>(run: (tx: DatabaseTransaction) => Promise<T>): Promise<T> {
+  await requireAdmin();
+  return queryAsStaff(run);
 }
