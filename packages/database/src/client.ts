@@ -73,11 +73,20 @@ export function createDrizzleSupabaseClient(token: SupabaseToken = {}): DrizzleS
           `);
           return await transaction(tx);
         } finally {
-          await tx.execute(sql`
+          // Both COMMIT and ROLLBACK already revert transaction-local settings,
+          // so this is belt and braces. If the callback threw, the transaction
+          // is aborted and every further statement errors -- discard that so the
+          // caller sees the original failure rather than "current transaction is
+          // aborted".
+          await tx
+            .execute(
+              sql`
             select set_config('request.jwt.claims', NULL, TRUE);
             select set_config('request.jwt.claim.sub', NULL, TRUE);
             reset role;
-          `);
+          `,
+            )
+            .catch(() => undefined);
         }
       }),
     end: () => pool.end(),
