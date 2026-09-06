@@ -29,6 +29,13 @@
       "when": 1788737936044,
       "tag": "0003_one_review_per_reviewer",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788738903325,
+      "tag": "0004_restrict_applicant_status_writes",
+      "breakpoints": true
     }
   ]
 }
