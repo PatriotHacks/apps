@@ -253,7 +253,7 @@ async function seedSampleForm(db: SeedDb) {
       label: "Resume",
       helpText: "PDF, 10MB max.",
       position: 1,
-      config: { accept: ["application/pdf"], maxSizeBytes: 10 * 1024 * 1024 },
+      config: { allowedMimeTypes: ["application/pdf"], maxBytes: 10 * 1024 * 1024 },
     },
     {
       id: question(10),
