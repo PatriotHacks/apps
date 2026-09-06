@@ -92,3 +92,23 @@ export {
   type AnswerSetValidationResult,
   type AnswerValidationResult,
 } from "./validate";
+
+export {
+  branchingQuestions,
+  firstSection,
+  resolveNextSection,
+  selectedOption,
+  type AnswerMap,
+  type NextSection,
+} from "./traverse";
+
+export { computeReachability, type Reachability } from "./reachability";
+
+export {
+  validateFormGraph,
+  type GraphError,
+  type GraphErrorCode,
+  type GraphValidationResult,
+} from "./validate-graph";
+
+export { orphanedQuestionIds } from "./discard";
