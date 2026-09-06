@@ -177,6 +177,9 @@ export const submissionReviews = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (t) => [
+    // One note per reviewer per submission, so "edit my note" is an upsert
+    // rather than a select-then-write that two tabs can both win.
+    unique("submission_reviews_submission_id_reviewer_id_unique").on(t.submissionId, t.reviewerId),
     index("submission_reviews_submission_id_idx").on(t.submissionId),
 
     pgPolicy("submission_reviews_select_staff", {
