@@ -1,8 +1,8 @@
-import {
+import type {
+  DatabaseTransaction,
   formSections,
   questionOptions,
   questions,
-  type DatabaseTransaction,
 } from "@patriothacks/database";
 import { eq, sql, type SQL } from "drizzle-orm";
 
