@@ -1,4 +1,10 @@
-import type { Question, QuestionOption, QuestionType } from "./types";
+import type {
+  FormDefinition,
+  FormSection,
+  Question,
+  QuestionOption,
+  QuestionType,
+} from "./types";
 
 let counter = 0;
 
@@ -77,4 +83,58 @@ export function makeGridQuestion<
       ),
     ],
   });
+}
+
+/** A single-select question whose options jump to the section ids given. */
+export function makeBranchQuestion<T extends "multiple_choice" | "dropdown">(
+  type: T,
+  targets: Record<string, string | null>,
+  overrides: Partial<Omit<Question<T>, "type" | "options">> = {},
+): Question<T> {
+  return makeQuestion(type, {
+    ...overrides,
+    options: Object.entries(targets).map(([value, target], index) =>
+      makeOption({
+        kind: "choice",
+        value,
+        label: value,
+        position: index,
+        nextAction: target === null ? "next" : "section",
+        nextSectionId: target,
+      }),
+    ),
+  });
+}
+
+export function makeSection(overrides: Partial<FormSection> = {}): FormSection {
+  counter += 1;
+  const id = overrides.id ?? `section-${counter}`;
+  return {
+    formId: "form-1",
+    title: `Section ${id}`,
+    description: null,
+    position: counter,
+    nextAction: "next",
+    nextSectionId: null,
+    ...overrides,
+    id,
+    questions: (overrides.questions ?? []).map((question) => ({
+      ...question,
+      sectionId: id,
+    })),
+  };
+}
+
+export function makeForm(
+  sections: FormSection[],
+  overrides: Partial<Omit<FormDefinition, "sections">> = {},
+): FormDefinition {
+  return {
+    id: "form-1",
+    slug: "form",
+    title: "Form",
+    description: null,
+    ...overrides,
+    sections,
+  };
 }
