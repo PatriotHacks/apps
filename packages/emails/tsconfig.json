@@ -1,5 +1,12 @@
 {
   "extends": "@patriothacks/config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "jsx": "react-jsx",
+    // Matches @patriothacks/database: relative imports carry an explicit
+    // extension, so consumers resolve the source with no build step.
+    "allowImportingTsExtensions": true
+  },
   "include": ["src/**/*.ts", "src/**/*.tsx", "*.ts"],
   "exclude": ["node_modules", "dist"]
 }
