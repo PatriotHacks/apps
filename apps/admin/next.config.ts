@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  // Workspace packages ship TypeScript source, not a build.
+  transpilePackages: ["@patriothacks/database", "@patriothacks/ui"],
+  // `pg` resolves its driver at runtime; bundling it breaks that.
+  serverExternalPackages: ["pg"],
+};
 
 export default nextConfig;
 

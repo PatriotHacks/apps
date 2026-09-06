@@ -2,6 +2,9 @@
   "extends": "@patriothacks/config/tsconfig.nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
+    // @patriothacks/database ships source whose relative imports carry an
+    // explicit .ts extension, so consumers have to allow it too.
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": ["./src/*"]
     }
