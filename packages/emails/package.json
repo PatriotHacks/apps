@@ -10,11 +10,28 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@patriothacks/database": "workspace:*",
+    "drizzle-orm": "0.45.2",
+    "react-email": "6.9.3",
+    "resend": "6.26.0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
   },
   "devDependencies": {
     "@patriothacks/config": "workspace:*",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
     "eslint": "9.39.5",
-    "typescript": "5.9.3"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
   }
 }

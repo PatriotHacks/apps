@@ -24,3 +24,5 @@ supabase/.branches/
 *.log
 
 *.tsbuildinfo
+
+.claude/worktrees/

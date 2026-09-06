@@ -12,6 +12,7 @@
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE_KEY",
     "RESEND_API_KEY",
+    "EMAIL_FROM",
     "NEXT_PUBLIC_AUTH_PROVIDERS"
   ],
   "tasks": {
@@ -41,9 +42,7 @@
       ]
     },
     "test": {
-      "dependsOn": [
-        "^build"
-      ]
+      "outputs": []
     }
   }
 }
