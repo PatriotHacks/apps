@@ -1,8 +1,26 @@
-export default function Home() {
+import { AppShell, Button } from "@patriothacks/ui";
+
+import { requireStaff } from "@/lib/auth";
+
+import { signOut } from "./actions";
+
+export default async function Home() {
+  const { email, role } = await requireStaff();
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col justify-center gap-2 p-8">
-      <h1 className="text-2xl font-semibold">PatriotHacks Admin</h1>
-      <p className="text-sm">Build forms, review responses, issue decisions.</p>
-    </main>
+    <AppShell>
+      <div className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm">{email}</p>
+          <form action={signOut}>
+            <Button type="submit" variant="outline" size="sm">
+              Sign out
+            </Button>
+          </form>
+        </div>
+
+        <p className="text-sm text-muted-foreground">Role: {role}</p>
+      </div>
+    </AppShell>
   );
 }
