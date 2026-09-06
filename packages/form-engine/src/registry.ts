@@ -1,5 +1,17 @@
 import type { z } from "zod";
 import {
+  checkDate,
+  checkFile,
+  checkGridMulti,
+  checkGridSingle,
+  checkMultiChoice,
+  checkScale,
+  checkSingleChoice,
+  checkTextConstraints,
+  checkTime,
+  type ConstraintCheck,
+} from "./constraints";
+import {
   dateConfigSchema,
   emptyConfigSchema,
   fileUploadConfigSchema,
@@ -44,6 +56,11 @@ export interface QuestionTypeDefinition<
   readonly valueSchema: TValue;
   /** Validates the `questions.config` jsonb blob. */
   readonly configSchema: TConfig;
+  /**
+   * Everything the shape schema cannot express: option and grid id references,
+   * length and range limits, upload rules. Runs only after both schemas pass.
+   */
+  readonly checkConstraints: ConstraintCheck<z.infer<TValue>, z.infer<TConfig>>;
 }
 
 function define<TValue extends z.ZodType, TConfig extends z.ZodType>(
@@ -60,6 +77,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: textValueSchema,
     configSchema: textConfigSchema,
+    checkConstraints: checkTextConstraints,
   }),
   paragraph: define({
     label: "Paragraph",
@@ -68,6 +86,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: textValueSchema,
     configSchema: textConfigSchema,
+    checkConstraints: checkTextConstraints,
   }),
   multiple_choice: define({
     label: "Multiple choice",
@@ -76,6 +95,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: true,
     valueSchema: textValueSchema,
     configSchema: emptyConfigSchema,
+    checkConstraints: checkSingleChoice,
   }),
   checkboxes: define({
     label: "Checkboxes",
@@ -84,6 +104,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: textArrayValueSchema,
     configSchema: emptyConfigSchema,
+    checkConstraints: checkMultiChoice,
   }),
   dropdown: define({
     label: "Dropdown",
@@ -92,6 +113,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: true,
     valueSchema: textValueSchema,
     configSchema: emptyConfigSchema,
+    checkConstraints: checkSingleChoice,
   }),
   linear_scale: define({
     label: "Linear scale",
@@ -100,6 +122,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: scaleValueSchema,
     configSchema: linearScaleConfigSchema,
+    checkConstraints: checkScale,
   }),
   date: define({
     label: "Date",
@@ -108,6 +131,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: dateValueSchema,
     configSchema: dateConfigSchema,
+    checkConstraints: checkDate,
   }),
   time: define({
     label: "Time",
@@ -116,6 +140,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: timeValueSchema,
     configSchema: timeConfigSchema,
+    checkConstraints: checkTime,
   }),
   grid_multiple_choice: define({
     label: "Multiple choice grid",
@@ -124,6 +149,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: gridSingleValueSchema,
     configSchema: emptyConfigSchema,
+    checkConstraints: checkGridSingle,
   }),
   grid_checkbox: define({
     label: "Checkbox grid",
@@ -132,6 +158,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: gridMultiValueSchema,
     configSchema: emptyConfigSchema,
+    checkConstraints: checkGridMulti,
   }),
   file_upload: define({
     label: "File upload",
@@ -140,6 +167,7 @@ export const QUESTION_TYPE_REGISTRY = {
     canBranch: false,
     valueSchema: fileValueSchema,
     configSchema: fileUploadConfigSchema,
+    checkConstraints: checkFile,
   }),
 } as const satisfies Record<QuestionType, QuestionTypeDefinition>;
 
