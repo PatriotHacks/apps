@@ -15,3 +15,12 @@ export function formatWindow(opensAt: Date | null, closesAt: Date | null): strin
   if (!opensAt && closesAt) return `Closes ${formatDateTime(closesAt)}`;
   return `${formatDateTime(opensAt)} — ${formatDateTime(closesAt)}`;
 }
+
+/**
+ * A section's display name. `title` is nullable, position is not. Lives beside
+ * the other formatters rather than with the loader so client components can use
+ * it without pulling the database client into the browser bundle.
+ */
+export function sectionLabel(title: string | null | undefined, position: number): string {
+  return title && title.length > 0 ? title : `Section ${position + 1}`;
+}

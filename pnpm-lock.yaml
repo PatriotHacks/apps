@@ -23,6 +23,9 @@ importers:
       '@patriothacks/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@patriothacks/form-engine':
+        specifier: workspace:*
+        version: link:../../packages/form-engine
       '@patriothacks/ui':
         specifier: workspace:*
         version: link:../../packages/ui
