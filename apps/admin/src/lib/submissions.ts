@@ -300,5 +300,3 @@ export async function loadSubmissionDetail(
     };
   });
 }
-
-export { countRows };
