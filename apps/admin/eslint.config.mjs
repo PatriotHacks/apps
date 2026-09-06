@@ -8,10 +8,12 @@ const compat = new FlatCompat({
   baseDirectory: dirname(fileURLToPath(import.meta.url)),
 });
 
-export default [
+const config = [
   ...base,
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [".next/**", ".open-next/**", ".wrangler/**", "cloudflare-env.d.ts"],
   },
 ];
+
+export default config;
