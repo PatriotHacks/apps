@@ -1,5 +1,5 @@
 import { formSections, forms, questionOptions, questions, submissions } from "@patriothacks/database";
-import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull } from "drizzle-orm";
 
 import { queryAsStaff } from "@/lib/db";
 
@@ -9,6 +9,10 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * Counts are correlated subqueries so Postgres returns three integers per form.
  * At 500-2000 submissions per form, fetching rows to count them in JavaScript
  * would pull the whole table across the wire.
+ *
+ * `$count` rather than a hand-written `sql` fragment: inside a raw subquery
+ * drizzle emits the outer column unqualified, so `where "form_id" = "id"` binds
+ * `id` to the inner table and every count comes back 0.
  */
 export function listForms() {
   return queryAsStaff((tx) =>
@@ -21,9 +25,9 @@ export function listForms() {
         editPolicy: forms.editPolicy,
         opensAt: forms.opensAt,
         closesAt: forms.closesAt,
-        sectionCount: sql<number>`(select count(*) from ${formSections} where ${formSections.formId} = ${forms.id})`.mapWith(Number),
-        questionCount: sql<number>`(select count(*) from ${questions} where ${questions.formId} = ${forms.id})`.mapWith(Number),
-        submissionCount: sql<number>`(select count(*) from ${submissions} where ${submissions.formId} = ${forms.id})`.mapWith(Number),
+        sectionCount: tx.$count(formSections, eq(formSections.formId, forms.id)),
+        questionCount: tx.$count(questions, eq(questions.formId, forms.id)),
+        submissionCount: tx.$count(submissions, eq(submissions.formId, forms.id)),
       })
       .from(forms)
       .where(isNull(forms.deletedAt))
