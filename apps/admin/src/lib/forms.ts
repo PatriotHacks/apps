@@ -2,8 +2,7 @@ import { formSections, forms, questionOptions, questions, submissions } from "@p
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 
 import { queryAsStaff } from "@/lib/db";
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid, sectionLabel } from "@/lib/form-definition";
 
 /**
  * Counts are correlated subqueries so Postgres returns three integers per form.
@@ -37,11 +36,8 @@ export function listForms() {
 
 export type FormListRow = Awaited<ReturnType<typeof listForms>>[number];
 
-/** A section's display name. `title` is nullable, position is not. */
-const sectionLabel = (title: string | null, position: number) => title ?? `Section ${position + 1}`;
-
 export async function getFormDetail(id: string) {
-  if (!UUID.test(id)) return null;
+  if (!isUuid(id)) return null;
 
   return queryAsStaff(async (tx) => {
     const [form] = await tx
