@@ -18,5 +18,8 @@
     "eslint": "^9",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "devDependencies": {
+    "tailwindcss": "4.3.3"
   }
 }
