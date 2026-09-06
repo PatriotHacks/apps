@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StatusBadge } from "@/components/status-badge";
+import { requireStaff } from "@/lib/auth";
 import { formatDateTime, formatWindow } from "@/lib/format";
 import { type FormDetail, getFormDetail } from "@/lib/forms";
 
@@ -125,10 +126,11 @@ function SectionCard({
 
 export default async function FormDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const detail = await getFormDetail(id);
+  const [staff, detail] = await Promise.all([requireStaff(), getFormDetail(id)]);
   if (!detail) notFound();
 
   const { form, sections, sectionNames } = detail;
+  const editable = staff.role === "admin" && form.status === "draft";
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -142,9 +144,16 @@ export default async function FormDetailPage({ params }: { params: Promise<{ id:
           {form.description ? <p className="text-sm">{form.description}</p> : null}
         </div>
 
-        <Button asChild variant="outline" size="sm">
-          <Link href={`/forms/${form.id}/submissions`}>Submissions</Link>
-        </Button>
+        <div className="flex gap-2">
+          {editable ? (
+            <Button asChild size="sm">
+              <Link href={`/forms/${form.id}/edit`}>Edit</Link>
+            </Button>
+          ) : null}
+          <Button asChild variant="outline" size="sm">
+            <Link href={`/forms/${form.id}/submissions`}>Submissions</Link>
+          </Button>
+        </div>
       </div>
 
       <ImmutabilityNotice status={form.status} />
