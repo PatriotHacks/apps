@@ -1,0 +1,5 @@
+{
+  "extends": "@patriothacks/config/tsconfig.base.json",
+  "include": ["src/**/*.ts", "src/**/*.tsx", "*.ts"],
+  "exclude": ["node_modules", "dist"]
+}
