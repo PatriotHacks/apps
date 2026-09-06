@@ -1,0 +1,24 @@
+{
+  "name": "patriothacks",
+  "private": true,
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @patriothacks/database db:generate",
+    "db:migrate": "pnpm --filter @patriothacks/database db:migrate",
+    "db:seed": "pnpm --filter @patriothacks/database db:seed",
+    "db:reset": "supabase db reset --no-seed && pnpm db:migrate && pnpm db:seed",
+    "supabase": "supabase"
+  },
+  "devDependencies": {
+    "supabase": "2.116.0",
+    "turbo": "2.10.12",
+    "typescript": "5.9.3"
+  }
+}
