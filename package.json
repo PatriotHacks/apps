@@ -14,7 +14,8 @@
     "db:migrate": "pnpm --filter @patriothacks/database db:migrate",
     "db:seed": "pnpm --filter @patriothacks/database db:seed",
     "db:reset": "supabase db reset --no-seed && pnpm db:migrate && pnpm db:seed",
-    "supabase": "supabase"
+    "supabase": "supabase",
+    "test": "turbo test"
   },
   "devDependencies": {
     "supabase": "2.116.0",
