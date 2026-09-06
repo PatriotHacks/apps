@@ -423,7 +423,7 @@ Behavior:
 
 ### Builder
 
-Section and question management with drag reorder, all 11 question types, per-option branch targets,
+Section and question management with up/down reordering, all 11 question types, per-option branch targets,
 per-question `editable_after_submit`, and form-level `edit_policy`. Live preview uses the shared
 renderer. Publish runs the graph validation from Section 8 and is irreversible.
 
