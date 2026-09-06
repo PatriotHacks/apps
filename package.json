@@ -15,7 +15,8 @@
     "db:seed": "pnpm --filter @patriothacks/database db:seed",
     "db:reset": "supabase db reset --no-seed && pnpm db:migrate && pnpm db:seed",
     "supabase": "supabase",
-    "test": "turbo test"
+    "test": "turbo test",
+    "postinstall": "node scripts/link-env.mjs"
   },
   "devDependencies": {
     "supabase": "2.116.0",
