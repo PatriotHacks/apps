@@ -1,8 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-/** Reachable without a session. Everything else needs one, plus an `admins` row. */
-const PUBLIC_PREFIXES = ["/login", "/auth"];
+/**
+ * Reachable without a session. Everything else needs one, plus an `admins` row.
+ *
+ * `/unsubscribe` is public by necessity: someone who cannot sign in — a stale
+ * address, a lost password — must still be able to opt out. The signed token in
+ * the link is that route's boundary instead of a session.
+ */
+const PUBLIC_PREFIXES = ["/login", "/auth", "/unsubscribe"];
 
 const isPublic = (pathname: string) =>
   PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
