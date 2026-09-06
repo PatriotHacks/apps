@@ -1,6 +1,9 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalDependencies": [".env", ".env.example"],
+  "globalDependencies": [
+    ".env",
+    ".env.example"
+  ],
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",
@@ -17,14 +20,30 @@
       "persistent": true
     },
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", ".open-next/**", "dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        ".open-next/**",
+        "dist/**"
+      ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": [
+        "^typecheck"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }
