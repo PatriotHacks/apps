@@ -1,1 +1,3 @@
-export const PACKAGE_NAME = "@patriothacks/database";
+export * from "./schema/index.ts";
+export * from "./client.ts";
+export * from "./types.ts";
