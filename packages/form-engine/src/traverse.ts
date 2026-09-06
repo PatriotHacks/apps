@@ -42,7 +42,7 @@ export interface SectionGraph {
 }
 
 /** Position, then id, so ordering is total even if positions collide. */
-function byPosition<T extends { id: string; position: number }>(
+export function byPosition<T extends { id: string; position: number }>(
   a: T,
   b: T,
 ): number {
