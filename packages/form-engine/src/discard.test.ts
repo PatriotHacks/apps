@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { orphanedQuestionIds } from "./discard";
 import {
+  SUBMIT,
   makeBranchQuestion,
   makeForm,
   makeQuestion,
@@ -138,6 +139,24 @@ describe("jumping past a section", () => {
     expect(
       orphanedQuestionIds(jumper, previous, { ...previous, skip: "skip" }),
     ).toEqual(["middle-1"]);
+  });
+
+  it("orphans everything after an option that ends the form", () => {
+    const done = makeBranchQuestion(
+      "multiple_choice",
+      { done: SUBMIT, more: null },
+      { id: "done" },
+    );
+    const laterQuestion = makeQuestion("paragraph", { id: "later-1" });
+    const ending = makeForm([
+      section("a", 1, { questions: [done] }),
+      section("later", 2, { questions: [laterQuestion] }),
+    ]);
+    const previous = { done: "more", "later-1": "typed" };
+    expect(
+      orphanedQuestionIds(ending, previous, { ...previous, done: "done" }),
+    ).toEqual(["later-1"]);
+    expect(orphanedQuestionIds(ending, previous, previous)).toEqual([]);
   });
 
   it("orphans everything after a branch that submits early", () => {

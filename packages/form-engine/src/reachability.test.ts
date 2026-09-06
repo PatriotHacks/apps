@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeReachability } from "./reachability";
 import {
+  SUBMIT,
   makeBranchQuestion,
   makeForm,
   makeQuestion,
@@ -130,6 +131,25 @@ describe("submit", () => {
     const reachable = computeReachability(form, {});
     expect(reachable.sections.map((visited) => visited.id)).toEqual(["a"]);
     expect(reachable.questionIds.has("q")).toBe(false);
+  });
+
+  it("cuts the form off where an option submits", () => {
+    const question = makeBranchQuestion("multiple_choice", {
+      done: SUBMIT,
+      more: null,
+    });
+    const form = makeForm([
+      section("a", 1, { questions: [question] }),
+      section("b", 2, {
+        questions: [makeQuestion("short_answer", { id: "later" })],
+      }),
+    ]);
+    const stopped = computeReachability(form, { [question.id]: "done" });
+    expect(stopped.sections.map((visited) => visited.id)).toEqual(["a"]);
+    expect(stopped.questionIds.has("later")).toBe(false);
+
+    const continued = computeReachability(form, { [question.id]: "more" });
+    expect(continued.questionIds.has("later")).toBe(true);
   });
 
   it("can be reached through a branch, cutting the rest of the form off", () => {

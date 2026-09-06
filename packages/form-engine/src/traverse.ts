@@ -13,8 +13,9 @@ import {
  * A form is a directed graph of sections. Given a set of answers, exactly one
  * section follows any given section, resolved in this order:
  *
- * 1. A branching question in the section whose selected option carries
- *    `nextAction: 'section'` — jump to that option's `nextSectionId`.
+ * 1. A branching question in the section whose selected option carries a
+ *    `nextAction` of its own — jump to that option's `nextSectionId`, or end
+ *    the form if the option submits.
  * 2. The section's own `nextAction`.
  * 3. The next section by `position`.
  *
@@ -91,24 +92,33 @@ export function selectedOption(
 }
 
 /**
- * The branch target a section's answers resolve to, if any.
+ * The outcome a section's answers branch to, if any.
+ *
+ * A selected option ends the form when its `nextAction` is `submit` and jumps
+ * when it is `section` with a target that exists — "pick this answer and you
+ * are done" is a real form pattern, and `question_options.next_action` carries
+ * the full `branch_action` enum, so the builder can express it.
  *
  * A section is not supposed to hold more than one branching question, but the
  * schema permits it, so the rule is explicit: the earliest branching question
- * by position that resolves a usable target wins. A branching question that is
- * unanswered, or whose selected option does not jump, is skipped rather than
- * ending the search — so a later question can still supply the target.
+ * by position that resolves a usable outcome wins. A branching question that is
+ * unanswered, or whose selected option resolves nothing, is skipped rather than
+ * ending the search — so a later question can still supply the outcome.
  */
-function branchTarget(
+function branchOutcome(
   graph: SectionGraph,
   section: FormSection,
   answers: AnswerMap,
-): string | null {
+): NextSection | null {
   for (const question of branchingQuestions(section)) {
     const option = selectedOption(question, answers[question.id]);
-    if (option === null || option.nextAction !== "section") continue;
+    if (option === null) continue;
+    if (option.nextAction === "submit") return { kind: "submit" };
+    if (option.nextAction !== "section") continue;
     const target = option.nextSectionId;
-    if (target !== null && graph.byId.has(target)) return target;
+    if (target !== null && graph.byId.has(target)) {
+      return { kind: "section", sectionId: target };
+    }
   }
   return null;
 }
@@ -119,8 +129,8 @@ export function nextSectionFrom(
   section: FormSection,
   answers: AnswerMap,
 ): NextSection {
-  const branch = branchTarget(graph, section, answers);
-  if (branch !== null) return { kind: "section", sectionId: branch };
+  const branch = branchOutcome(graph, section, answers);
+  if (branch !== null) return branch;
 
   if (section.nextAction === "submit") return { kind: "submit" };
   if (section.nextAction === "section") {

@@ -85,10 +85,17 @@ export function makeGridQuestion<
   });
 }
 
-/** A single-select question whose options jump to the section ids given. */
+/** Marks an option that ends the form, as opposed to one naming a section. */
+export const SUBMIT = { submit: true } as const;
+
+/**
+ * A single-select question whose options carry the outcomes given: a section id
+ * to jump to, `SUBMIT` to end the form, or null for a plain non-branching
+ * option.
+ */
 export function makeBranchQuestion<T extends "multiple_choice" | "dropdown">(
   type: T,
-  targets: Record<string, string | null>,
+  targets: Record<string, string | typeof SUBMIT | null>,
   overrides: Partial<Omit<Question<T>, "type" | "options">> = {},
 ): Question<T> {
   return makeQuestion(type, {
@@ -99,8 +106,9 @@ export function makeBranchQuestion<T extends "multiple_choice" | "dropdown">(
         value,
         label: value,
         position: index,
-        nextAction: target === null ? "next" : "section",
-        nextSectionId: target,
+        nextAction:
+          target === null ? "next" : target === SUBMIT ? "submit" : "section",
+        nextSectionId: typeof target === "string" ? target : null,
       }),
     ),
   });

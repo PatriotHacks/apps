@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  SUBMIT,
   makeBranchQuestion,
   makeChoiceQuestion,
   makeForm,
@@ -205,6 +206,68 @@ describe("option branching", () => {
     });
   });
 
+  it("ends the form when the selected option submits", () => {
+    const question = makeBranchQuestion("multiple_choice", {
+      done: SUBMIT,
+      more: null,
+    });
+    const form = makeForm([
+      section("a", 1, { questions: [question] }),
+      section("b", 2),
+    ]);
+    expect(resolveNextSection(form, "a", { [question.id]: "done" })).toEqual({
+      kind: "submit",
+    });
+  });
+
+  it("lets a submitting option beat the section's own jump", () => {
+    const question = makeBranchQuestion("dropdown", { done: SUBMIT });
+    const form = makeForm([
+      section("a", 1, {
+        questions: [question],
+        nextAction: "section",
+        nextSectionId: "c",
+      }),
+      section("b", 2),
+      section("c", 3),
+    ]);
+    expect(resolveNextSection(form, "a", { [question.id]: "done" })).toEqual({
+      kind: "submit",
+    });
+  });
+
+  it("leaves the other options of a submitting question alone", () => {
+    const question = makeBranchQuestion("multiple_choice", {
+      done: SUBMIT,
+      more: null,
+    });
+    const form = makeForm([
+      section("a", 1, { questions: [question] }),
+      section("b", 2),
+    ]);
+    expect(resolveNextSection(form, "a", { [question.id]: "more" })).toEqual({
+      kind: "section",
+      sectionId: "b",
+    });
+    expect(resolveNextSection(form, "a", {})).toEqual({
+      kind: "section",
+      sectionId: "b",
+    });
+  });
+
+  it("ignores a submitting option on a type that cannot branch", () => {
+    const question = makeChoiceQuestion("checkboxes", ["done"]);
+    question.options[0] = { ...question.options[0]!, nextAction: "submit" };
+    const form = makeForm([
+      section("a", 1, { questions: [question] }),
+      section("b", 2),
+    ]);
+    expect(resolveNextSection(form, "a", { [question.id]: ["done"] })).toEqual({
+      kind: "section",
+      sectionId: "b",
+    });
+  });
+
   it("ignores a section action that names no target", () => {
     const form = makeForm([
       section("a", 1, { nextAction: "section", nextSectionId: null }),
@@ -236,6 +299,22 @@ describe("two branching questions in one section", () => {
       kind: "section",
       sectionId: "c",
     });
+  });
+
+  it("counts a submitting option as a resolved outcome, so the earlier wins", () => {
+    const first = makeBranchQuestion(
+      "multiple_choice",
+      { pick: SUBMIT },
+      { position: 1 },
+    );
+    const second = makeBranchQuestion("dropdown", { pick: "c" }, { position: 2 });
+    const form = makeForm([
+      section("a", 1, { questions: [second, first] }),
+      section("b", 2),
+      section("c", 3),
+    ]);
+    const answers = { [first.id]: "pick", [second.id]: "pick" };
+    expect(resolveNextSection(form, "a", answers)).toEqual({ kind: "submit" });
   });
 
   it("falls to the later question when the earlier one resolves nothing", () => {
