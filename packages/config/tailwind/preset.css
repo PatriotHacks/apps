@@ -1,0 +1,12 @@
+/*
+ * Shared Tailwind preset. Tailwind v4 is CSS-first, so the "preset" is a
+ * stylesheet the apps import rather than a JS config object.
+ *
+ * Design tokens live here as CSS variables so the palette can be re-themed
+ * later without touching component code. `packages/ui` fills this in.
+ */
+@import "tailwindcss";
+
+@theme {
+  /* intentionally empty — see packages/ui */
+}

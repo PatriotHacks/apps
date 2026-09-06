@@ -1,0 +1,26 @@
+node_modules/
+.pnpm-store/
+
+# Build output
+.next/
+.open-next/
+.turbo/
+dist/
+out/
+.wrangler/
+next-env.d.ts
+
+# Environment — everything except the documented template
+.env*
+!.env.example
+
+# Local tooling
+.worktrees/
+.analysis/
+supabase/.temp/
+supabase/.branches/
+
+.DS_Store
+*.log
+
+*.tsbuildinfo

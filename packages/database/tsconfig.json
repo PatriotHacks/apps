@@ -1,0 +1,12 @@
+{
+  "extends": "@patriothacks/config/tsconfig.base.json",
+  "compilerOptions": {
+    // Relative imports carry an explicit .ts extension so `node src/seed.ts`
+    // runs under Node's native type stripping with no extra toolchain.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "*.ts"],
+  "exclude": ["node_modules", "dist", "drizzle"]
+}

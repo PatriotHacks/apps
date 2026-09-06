@@ -1,0 +1,190 @@
+/*
+ * Design tokens for both apps.
+ *
+ * Every colour is a CSS custom property defined on bare `:root`, so re-theming
+ * is a matter of editing the two palette blocks below and nothing else. No
+ * colour is defined only inside a media query — the media block and the
+ * `[data-theme]` block redefine existing tokens, never introduce new ones.
+ *
+ * Theme resolution is three-state:
+ *   no attribute      -> follow the OS
+ *   data-theme=light  -> light, even when the OS is dark
+ *   data-theme=dark   -> dark, even when the OS is light
+ */
+
+@import "@patriothacks/config/tailwind/preset.css";
+
+/* The apps import this stylesheet through node_modules, which Tailwind's
+   automatic content detection skips. Point it at this package explicitly. */
+@source "../**/*.{ts,tsx}";
+
+/* Keep the `dark:` variant on the same three-state logic as the tokens. */
+@custom-variant dark {
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *, :root:not([data-theme="light"])) {
+      @slot;
+    }
+  }
+  &:where([data-theme="dark"] *, [data-theme="dark"]) {
+    @slot;
+  }
+}
+
+/* ---------------------------------------------------------------- light --- */
+
+:root {
+  color-scheme: light;
+
+  --radius: 0.625rem;
+
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.205 0.005 250);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.205 0.005 250);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.205 0.005 250);
+
+  /* The single accent. Everything else in the palette is neutral. */
+  --primary: oklch(0.52 0.115 155);
+  --primary-foreground: oklch(0.985 0.012 155);
+
+  --secondary: oklch(0.968 0.003 250);
+  --secondary-foreground: oklch(0.205 0.005 250);
+
+  --muted: oklch(0.968 0.003 250);
+  --muted-foreground: oklch(0.552 0.008 250);
+
+  --accent: oklch(0.968 0.003 250);
+  --accent-foreground: oklch(0.205 0.005 250);
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  --border: oklch(0.922 0.005 250);
+  --input: oklch(0.922 0.005 250);
+  --ring: oklch(0.52 0.115 155);
+}
+
+/* ----------------------------------------------------------------- dark --- */
+
+/* Written twice on purpose: once for the OS preference (skipped when the user
+   has explicitly chosen light) and once for the explicit dark attribute. */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --background: oklch(0.16 0.006 250);
+    --foreground: oklch(0.965 0.003 250);
+
+    --card: oklch(0.205 0.006 250);
+    --card-foreground: oklch(0.965 0.003 250);
+
+    --popover: oklch(0.225 0.006 250);
+    --popover-foreground: oklch(0.965 0.003 250);
+
+    --primary: oklch(0.72 0.135 155);
+    --primary-foreground: oklch(0.2 0.04 155);
+
+    --secondary: oklch(0.27 0.006 250);
+    --secondary-foreground: oklch(0.965 0.003 250);
+
+    --muted: oklch(0.27 0.006 250);
+    --muted-foreground: oklch(0.708 0.008 250);
+
+    --accent: oklch(0.3 0.006 250);
+    --accent-foreground: oklch(0.965 0.003 250);
+
+    --destructive: oklch(0.704 0.191 22.216);
+    --destructive-foreground: oklch(0.98 0 0);
+
+    --border: oklch(1 0 0 / 12%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.72 0.135 155);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: oklch(0.16 0.006 250);
+  --foreground: oklch(0.965 0.003 250);
+
+  --card: oklch(0.205 0.006 250);
+  --card-foreground: oklch(0.965 0.003 250);
+
+  --popover: oklch(0.225 0.006 250);
+  --popover-foreground: oklch(0.965 0.003 250);
+
+  --primary: oklch(0.72 0.135 155);
+  --primary-foreground: oklch(0.2 0.04 155);
+
+  --secondary: oklch(0.27 0.006 250);
+  --secondary-foreground: oklch(0.965 0.003 250);
+
+  --muted: oklch(0.27 0.006 250);
+  --muted-foreground: oklch(0.708 0.008 250);
+
+  --accent: oklch(0.3 0.006 250);
+  --accent-foreground: oklch(0.965 0.003 250);
+
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.98 0 0);
+
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.72 0.135 155);
+}
+
+/* --------------------------------------------------------------- theme --- */
+
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji";
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+/* `inline` so utilities emit `var(--background)` directly and pick up whichever
+   palette block is currently in scope, rather than snapshotting a value. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+}
