@@ -17,11 +17,14 @@ import { choiceOptions, type FormDefinition, type FormSection } from "./types";
  *   its source. Forbidding backward jumps makes cycles structurally impossible
  *   and keeps a progress indicator honest.
  *
- * A third code, `missing_target`, covers a jump that names no section or names
- * one that is not part of this form. Traversal degrades to positional order in
- * that case, which is never what the builder meant.
+ * Two more codes cover forms that cannot work at all: `missing_target` for a
+ * jump that names no section or names one that is not part of this form, which
+ * degrades to positional order and is never what the builder meant, and
+ * `empty_form` for a form with no sections, which has nothing to ask and is
+ * immutable once shipped.
  */
 export type GraphErrorCode =
+  | "empty_form"
   | "missing_target"
   | "backward_jump"
   | "unreachable_section";
@@ -29,12 +32,13 @@ export type GraphErrorCode =
 /**
  * A problem with one jump or one section. `questionId` and `optionId` are set
  * when the offender is a branching option and null when it is the section's
- * own `nextAction`.
+ * own `nextAction`. `sectionId` is null only for `empty_form`, which is about
+ * the form as a whole.
  */
 export interface GraphError {
   code: GraphErrorCode;
   message: string;
-  sectionId: string;
+  sectionId: string | null;
   questionId: string | null;
   optionId: string | null;
   targetSectionId: string | null;
@@ -137,7 +141,16 @@ export function validateFormGraph(form: FormDefinition): GraphValidationResult {
   }
 
   const start = graph.ordered[0];
-  if (start !== undefined) {
+  if (start === undefined) {
+    errors.push({
+      code: "empty_form",
+      message: "A form must have at least one section to be published",
+      sectionId: null,
+      questionId: null,
+      optionId: null,
+      targetSectionId: null,
+    });
+  } else {
     const seen = new Set([start.id]);
     const stack = [start.id];
     while (stack.length > 0) {

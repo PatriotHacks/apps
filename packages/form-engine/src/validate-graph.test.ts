@@ -56,10 +56,28 @@ describe("valid graphs", () => {
     expect(validateFormGraph(form)).toEqual({ success: true, errors: [] });
   });
 
-  it("accepts a form with no sections", () => {
-    expect(validateFormGraph(makeForm([]))).toEqual({
+  it("accepts a single section", () => {
+    expect(validateFormGraph(makeForm([section("only", 1)]))).toEqual({
       success: true,
       errors: [],
+    });
+  });
+});
+
+describe("empty forms", () => {
+  it("refuses to publish a form with no sections", () => {
+    expect(validateFormGraph(makeForm([]))).toEqual({
+      success: false,
+      errors: [
+        {
+          code: "empty_form",
+          message: expect.any(String),
+          sectionId: null,
+          questionId: null,
+          optionId: null,
+          targetSectionId: null,
+        },
+      ],
     });
   });
 });
