@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "PatriotHacks Next.js app",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "jsx": "preserve",
+    "allowJs": true,
+    "incremental": true,
+    "declaration": false,
+    "declarationMap": false,
+    "noEmit": true,
+    "plugins": [{ "name": "next" }]
+  }
+}
