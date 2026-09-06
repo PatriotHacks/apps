@@ -5,7 +5,7 @@ import type { FormDefinition, GraphError } from "@patriothacks/form-engine";
 import { Button } from "@patriothacks/ui";
 import Link from "next/link";
 
-import { sectionLabel } from "@/lib/form-definition";
+import { sectionLabel } from "@/lib/format";
 
 import { addSection } from "./actions";
 import { useAction } from "./controls";

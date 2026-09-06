@@ -120,8 +120,3 @@ export async function loadFormDefinition(
     },
   };
 }
-
-/** A section's display name. `title` is nullable, position is not. */
-export function sectionLabel(title: string | null | undefined, position: number): string {
-  return title && title.length > 0 ? title : `Section ${position + 1}`;
-}

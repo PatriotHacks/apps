@@ -13,7 +13,7 @@ import {
 import { Button } from "@patriothacks/ui";
 import { useState } from "react";
 
-import { sectionLabel } from "@/lib/form-definition";
+import { sectionLabel } from "@/lib/format";
 
 /** The stored jsonb blob narrowed to what the renderer takes, or null. */
 function fieldValue(question: Question, raw: unknown): AnswerValueByType[QuestionType] | null {

@@ -2,7 +2,8 @@ import { formSections, forms, questionOptions, questions, submissions } from "@p
 import { and, asc, desc, eq, isNull } from "drizzle-orm";
 
 import { queryAsStaff } from "@/lib/db";
-import { isUuid, sectionLabel } from "@/lib/form-definition";
+import { isUuid } from "@/lib/form-definition";
+import { sectionLabel } from "@/lib/format";
 
 /**
  * Counts are correlated subqueries so Postgres returns three integers per form.
