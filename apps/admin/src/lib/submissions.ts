@@ -18,12 +18,11 @@ import { queryAsStaff } from "@/lib/db";
 import { isUuid, loadFormDefinition, orderedQuestions } from "@/lib/form-definition";
 import {
   parseSubmissionQuery,
-  submissionConditions,
-  submissionOrderBy,
   type SearchParams,
   type SubmissionQuery,
   type SubmissionStatus,
 } from "@/lib/submission-query";
+import { submissionConditions, submissionOrderBy } from "@/lib/submission-sql";
 
 /**
  * Reads behind the response grid, the detail view and the export.

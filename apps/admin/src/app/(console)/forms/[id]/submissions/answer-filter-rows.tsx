@@ -10,7 +10,7 @@ import {
   type AnswerFilter,
   type AnswerOperator,
 } from "@/lib/submission-query";
-import { type FilterableQuestion } from "./filterable-question";
+import type { FilterableQuestion } from "./filterable-question";
 
 /**
  * The per-question filter rows of the grid's GET form.

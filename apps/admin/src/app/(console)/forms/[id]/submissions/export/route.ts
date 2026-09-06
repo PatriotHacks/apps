@@ -1,11 +1,8 @@
 import { exportCell, exportColumns } from "@/lib/answer-view";
 import { staffClient } from "@/lib/db";
 import { loadFormDefinition, orderedQuestions } from "@/lib/form-definition";
-import {
-  parseSubmissionQuery,
-  submissionConditions,
-  type SearchParams,
-} from "@/lib/submission-query";
+import { parseSubmissionQuery, type SearchParams } from "@/lib/submission-query";
+import { submissionConditions } from "@/lib/submission-sql";
 import { readPage } from "@/lib/submissions";
 
 /**
