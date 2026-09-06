@@ -1,3 +1,4 @@
+import { TEMPLATE_LABELS } from "@patriothacks/emails";
 import { type Question } from "@patriothacks/form-engine";
 import { Badge, Button } from "@patriothacks/ui";
 import Link from "next/link";
@@ -5,10 +6,17 @@ import { notFound } from "next/navigation";
 
 import { SubmissionStatusBadge } from "@/components/submission-status-badge";
 import { formatBytes, summariseAnswer, viewAnswer, type AnswerView } from "@/lib/answer-view";
+import { requireStaff } from "@/lib/auth";
+import { loadDecisionState } from "@/lib/decision-state";
+import { DECISION_TEMPLATE, isDecisionStatus } from "@/lib/decisions";
 import { orderedSections } from "@/lib/form-definition";
 import { formatDateTime } from "@/lib/format";
+import { loadReviewNotes } from "@/lib/reviews";
 import { submissionSearchParams, type SearchParams } from "@/lib/submission-query";
 import { loadSubmissionDetail, type AnswerRevisionEntry } from "@/lib/submissions";
+
+import { DecisionPanel } from "./decision-panel";
+import { ReviewNotes } from "./review-notes";
 
 /**
  * One application as a document.
@@ -107,11 +115,21 @@ export default async function SubmissionDetailPage({
   searchParams: Promise<SearchParams>;
 }) {
   const [{ id }, rawParams] = await Promise.all([params, searchParams]);
-  const detail = await loadSubmissionDetail(id, rawParams);
+  const [staff, detail] = await Promise.all([requireStaff(), loadSubmissionDetail(id, rawParams)]);
   if (detail === null) notFound();
 
   const { form, definition, submission, answers, reachability, revisions, query, neighbours } =
     detail;
+
+  const [notes, decision] = await Promise.all([
+    loadReviewNotes(id),
+    loadDecisionState(id),
+  ]);
+
+  const decisionTemplate = isDecisionStatus(submission.status)
+    ? DECISION_TEMPLATE[submission.status]
+    : null;
+  const lastAttempt = decisionTemplate ? (decision?.sends.get(decisionTemplate) ?? null) : null;
 
   const search = submissionSearchParams(query).toString();
   const gridHref = `/forms/${form.id}/submissions${search === "" ? "" : `?${search}`}`;
@@ -162,7 +180,8 @@ export default async function SubmissionDetailPage({
         </div>
       </div>
 
-      <div className="flex max-w-3xl flex-col gap-6">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+      <div className="flex max-w-3xl flex-1 flex-col gap-6">
         {orderedSections(definition).map((section) => {
           const reached = reachability.sectionIds.has(section.id);
           const questions = [...section.questions].sort((a, b) => a.position - b.position);
@@ -223,6 +242,38 @@ export default async function SubmissionDetailPage({
             </section>
           );
         })}
+      </div>
+
+      {/* The notes panel sits beside the document rather than under it — a
+          reviewer writes while reading, not after scrolling past everything. */}
+      <aside className="flex w-full flex-col gap-6 lg:sticky lg:top-6 lg:w-96">
+        {staff.role === "admin" ? (
+          <DecisionPanel
+            submissionId={submission.id}
+            status={submission.status}
+            decidedAt={decision?.decidedAt ?? null}
+            decidedByEmail={decision?.decidedByEmail ?? null}
+            templateLabel={decisionTemplate ? TEMPLATE_LABELS[decisionTemplate] : null}
+            lastAttempt={lastAttempt}
+          />
+        ) : null}
+
+        {decision?.rsvpStatus ? (
+          <section className="rounded-lg border p-4">
+            <h2 className="font-medium">RSVP</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {decision.rsvpStatus} · {formatDateTime(decision.rsvpAt)}
+            </p>
+          </section>
+        ) : null}
+
+        <ReviewNotes
+          submissionId={submission.id}
+          notes={notes}
+          mine={notes.find((note) => note.mine) ?? null}
+          reviewerLabel={staff.email ?? "you"}
+        />
+      </aside>
       </div>
     </div>
   );
