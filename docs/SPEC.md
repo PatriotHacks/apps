@@ -100,7 +100,9 @@ Both apps deploy to Cloudflare Workers through the OpenNext adapter.
 }
 ```
 
-**Next.js version is pinned by the adapter** — currently `>=15.5.21 <16` or `>=16.2.11`. Do not
+**Next.js version is pinned by the adapter** — `@opennextjs/cloudflare@1.20.6` declares
+`next: >=15.5.24 <16 || >=16.3.3`. Pinned to `next@15.5.25`. Read the peer range off the installed
+adapter rather than the docs; the published support policy is wider than any given release. Do not
 upgrade Next without checking adapter support first.
 
 ### Database connection
