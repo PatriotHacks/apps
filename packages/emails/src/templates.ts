@@ -33,11 +33,29 @@ export const TEMPLATE_LABELS: Record<TemplateKey, string> = {
   rsvp_confirmed: "RSVP confirmed",
 };
 
-export type TemplateVariable = (typeof TEMPLATE_VARIABLES)[TemplateKey][number];
+/**
+ * Broadcasts are not in `TEMPLATE_KEYS` on purpose: their words live on the
+ * `broadcasts` row, not in `email_templates`, so they are not editable in the
+ * template editor and never carry an `email_sends.template_key`. They still
+ * render through the same interpolator, which is why they need a key here.
+ */
+export const BROADCAST_KEY = "broadcast";
+
+export const BROADCAST_VARIABLES = ["full_name", "email", "year", "unsubscribe_url"] as const;
+
+/** Anything renderable — a stored template or a broadcast body. */
+export type MessageKey = TemplateKey | typeof BROADCAST_KEY;
+
+export const MESSAGE_VARIABLES = {
+  ...TEMPLATE_VARIABLES,
+  [BROADCAST_KEY]: BROADCAST_VARIABLES,
+} as const satisfies Record<MessageKey, readonly string[]>;
+
+export type TemplateVariable = (typeof MESSAGE_VARIABLES)[MessageKey][number];
 
 /** Every value a given key's placeholders can be filled from. */
-export type TemplateContext<K extends TemplateKey = TemplateKey> = Record<
-  (typeof TEMPLATE_VARIABLES)[K][number],
+export type TemplateContext<K extends MessageKey = MessageKey> = Record<
+  (typeof MESSAGE_VARIABLES)[K][number],
   string
 >;
 
@@ -45,17 +63,19 @@ export function isTemplateKey(value: string): value is TemplateKey {
   return (TEMPLATE_KEYS as readonly string[]).includes(value);
 }
 
-export function variablesFor(key: TemplateKey): readonly TemplateVariable[] {
-  return TEMPLATE_VARIABLES[key];
+export function variablesFor(key: MessageKey): readonly TemplateVariable[] {
+  return MESSAGE_VARIABLES[key];
 }
 
 /** Stand-in values for the editor's test send, so nothing has to be invented per call site. */
-export function sampleContext(key: TemplateKey): TemplateContext {
+export function sampleContext(key: MessageKey): TemplateContext {
   const samples: Record<TemplateVariable, string> = {
     full_name: "Ada Admin",
+    email: "ada@example.com",
     form_title: "PatriotHacks Hacker Application",
     year: String(new Date().getUTCFullYear()),
     rsvp_url: "https://patriothacks.org/rsvp/sample",
+    unsubscribe_url: "https://admin.patriothacks.org/unsubscribe?token=sample",
   };
 
   return Object.fromEntries(
