@@ -1,5 +1,9 @@
 {
   "extends": "@patriothacks/config/tsconfig.base.json",
-  "include": ["src/**/*.ts", "src/**/*.tsx", "*.ts"],
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
   "exclude": ["node_modules", "dist"]
 }
