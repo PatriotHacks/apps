@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@patriothacks/database", "@patriothacks/ui"],
   // `pg` resolves its driver at runtime; bundling it breaks that.
   serverExternalPackages: ["pg"],
+  // Enables `forbidden()`, which is how an admin-only page refuses an organizer
+  // with a real 403 instead of a redirect to a page that returns 200.
+  experimental: { authInterrupts: true },
 };
 
 export default nextConfig;

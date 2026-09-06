@@ -16,9 +16,11 @@
   },
   "dependencies": {
     "@patriothacks/database": "workspace:*",
+    "@patriothacks/form-engine": "workspace:*",
     "@patriothacks/ui": "workspace:*",
     "@supabase/ssr": "0.12.6",
     "@supabase/supabase-js": "2.115.0",
+    "drizzle-orm": "0.45.2",
     "next": "15.5.25",
     "react": "19.2.8",
     "react-dom": "19.2.8"

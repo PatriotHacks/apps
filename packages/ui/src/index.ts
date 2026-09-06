@@ -1,6 +1,7 @@
 export { cn } from "cn";
 
 export { AppShell, type AppShellProps } from "#components/app-shell";
+export { Badge, badgeVariants } from "#components/badge";
 export { Button, buttonVariants } from "#components/button";
 export {
   Card,
@@ -15,6 +16,16 @@ export { Checkbox } from "#components/checkbox";
 export { Input } from "#components/input";
 export { Label } from "#components/label";
 export { RadioGroup, RadioGroupItem } from "#components/radio-group";
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "#components/table";
 export { Textarea } from "#components/textarea";
 export {
   ThemeProvider,
