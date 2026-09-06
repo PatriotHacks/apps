@@ -1,3 +1,4 @@
+import { ThemeProvider } from "@patriothacks/ui";
 import type { Metadata } from "next";
 
 import "./globals.css";
@@ -11,8 +12,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
