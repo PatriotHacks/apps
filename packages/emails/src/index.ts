@@ -5,6 +5,8 @@ export {
   unknownVariables,
   UnknownVariableError,
 } from "./interpolate.ts";
+export { EmailLayout, renderLayout, wrapText } from "./layout.tsx";
+export { renderTemplate, type RenderedEmail, type StoredTemplate } from "./render.ts";
 export {
   isTemplateKey,
   sampleContext,
