@@ -14,7 +14,7 @@ function ThemeProvider({ children, ...props }: ThemeProviderProps) {
   return (
     <NextThemesProvider
       attribute="data-theme"
-      defaultTheme="system"
+      defaultTheme="light"
       enableSystem
       enableColorScheme={false}
       disableTransitionOnChange
