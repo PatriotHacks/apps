@@ -38,7 +38,7 @@ export default async function EditFormPage({ params }: { params: Promise<{ id: s
             <Link href={`/forms/${form.id}`}>View the form</Link>
           </Button>
           <Button asChild size="sm" variant="outline">
-            <Link href="/forms/new">New form</Link>
+            <Link href="/forms">All forms</Link>
           </Button>
         </div>
       </div>

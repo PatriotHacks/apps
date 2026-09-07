@@ -1,20 +1,10 @@
-import { requireAdmin } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-import { NewForm } from "./new-form";
-
-export default async function NewFormPage() {
-  await requireAdmin();
-
-  return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-xl font-semibold">New form</h1>
-        <p className="text-sm text-muted-foreground">
-          Creates a draft. Everything else is editable until you publish.
-        </p>
-      </div>
-
-      <NewForm />
-    </div>
-  );
+/**
+ * Creating a form is a button on the list now, not a page of its own. This
+ * stays only so a bookmark or a nav entry still pointing here lands on the
+ * button rather than on a 404.
+ */
+export default function NewFormPage(): never {
+  redirect("/forms");
 }

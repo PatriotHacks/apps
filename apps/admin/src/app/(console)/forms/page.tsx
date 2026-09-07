@@ -15,6 +15,8 @@ import { requireStaff } from "@/lib/auth";
 import { formatWindow } from "@/lib/format";
 import { listForms } from "@/lib/forms";
 
+import { createDraftForm } from "./actions";
+
 const EDIT_POLICY: Record<Form["editPolicy"], string> = {
   locked: "Locked",
   per_question: "Per question",
@@ -36,9 +38,14 @@ export default async function FormsPage() {
         </div>
 
         {isAdmin ? (
-          <Button asChild size="sm">
-            <Link href="/forms/new">New form</Link>
-          </Button>
+          // A plain form post rather than a client component: the action creates
+          // the draft and redirects into the builder, so there is nothing for
+          // the browser to hold on to in between.
+          <form action={createDraftForm}>
+            <Button type="submit" size="sm">
+              New form
+            </Button>
+          </form>
         ) : null}
       </div>
 
