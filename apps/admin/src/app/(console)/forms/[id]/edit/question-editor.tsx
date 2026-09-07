@@ -350,7 +350,18 @@ export function QuestionEditor({
               className={cn(SELECT_CLASS, "w-56 shrink-0")}
               value={question.type}
               disabled={pending}
-              onChange={(event) => run(() => changeQuestionType(formId, question.id, event.target.value))}
+              onChange={(event) => {
+                const next = event.target.value;
+                run(async () => {
+                  const first = await changeQuestionType(formId, question.id, next);
+                  // A type that cannot read the existing answers comes back with
+                  // the count rather than destroying them; confirm the exact
+                  // number, then send it so a race is still refused.
+                  if (first.ok || first.needsAnswerConfirmation === undefined) return first;
+                  if (!window.confirm(first.message)) return { ok: true as const };
+                  return changeQuestionType(formId, question.id, next, first.needsAnswerConfirmation);
+                });
+              }}
             >
               {QUESTION_TYPES.map((value) => (
                 <option key={value} value={value}>

@@ -17,6 +17,7 @@ import {
   hasGrid,
   hasOptions,
   isQuestionType,
+  parseAnswerValue,
   parseQuestionConfig,
   validateFormGraph,
   type BranchAction,
@@ -34,7 +35,9 @@ import { isUuid, loadFormDefinition } from "@/lib/form-definition";
 import { moved, renumber } from "@/lib/positions";
 import { isSlug, toOptionValue } from "@/lib/slug";
 
-export type ActionResult = { ok: true } | { ok: false; message: string };
+export type ActionResult =
+  | { ok: true }
+  | { ok: false; message: string; needsAnswerConfirmation?: number };
 
 const OK: ActionResult = { ok: true };
 
@@ -139,6 +142,26 @@ async function countAnswers(tx: DatabaseTransaction, questionIds: string[]): Pro
 async function clearAnswers(tx: DatabaseTransaction, questionIds: string[]): Promise<void> {
   if (questionIds.length === 0) return;
   await tx.delete(answers).where(inArray(answers.questionId, questionIds));
+}
+
+/**
+ * Which of a question's stored answers would stop being readable under a new
+ * type. `answers.value` is jsonb and the type is the only thing that says how
+ * to read it, so changing the type without this leaves values no schema
+ * describes — the grid the admin sees and the parse the applicant's page runs
+ * would disagree, silently. Types that share a value shape (short answer to
+ * paragraph, dropdown to multiple choice) strand nothing and return zero.
+ */
+async function answersInvalidUnder(
+  tx: DatabaseTransaction,
+  questionId: string,
+  type: QuestionType,
+): Promise<string[]> {
+  const rows = await tx
+    .select({ id: answers.id, value: answers.value })
+    .from(answers)
+    .where(eq(answers.questionId, questionId));
+  return rows.filter((row) => !parseAnswerValue(type, row.value).success).map((row) => row.id);
 }
 
 /**
@@ -567,12 +590,29 @@ export async function changeQuestionType(
   formId: string,
   questionId: string,
   type: string,
+  confirmedAnswers = 0,
 ): Promise<ActionResult> {
   if (!isQuestionType(type)) return { ok: false, message: "Unknown question type." };
 
   return withStructure(formId, async (tx) => {
     const question = await questionOf(tx, formId, questionId);
     if (question.type === type) return OK;
+
+    // Answers that the new type cannot read have to go, for the same reason a
+    // deleted question's answers do: nothing else can interpret them again.
+    // Confirmed against a fresh count so a race is refused, not absorbed.
+    const stranded = await answersInvalidUnder(tx, questionId, type);
+    if (stranded.length > 0 && confirmedAnswers !== stranded.length) {
+      const n = stranded.length;
+      return {
+        ok: false,
+        needsAnswerConfirmation: n,
+        message: `${n} ${n === 1 ? "answer" : "answers"} to this question cannot be read as ${type.replace(/_/g, " ")} and will be deleted. Confirm to continue.`,
+      };
+    }
+    if (stranded.length > 0) {
+      await tx.delete(answers).where(inArray(answers.id, stranded));
+    }
 
     const carried = buildConfig(type, question.config ?? {});
     const built = carried.ok ? carried : buildConfig(type, {});
