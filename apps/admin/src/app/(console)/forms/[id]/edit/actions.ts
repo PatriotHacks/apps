@@ -10,6 +10,7 @@ import {
 } from "@patriothacks/database";
 import {
   BRANCH_ACTIONS,
+  OPTION_KINDS,
   canBranch,
   getQuestionTypeDefinition,
   hasGrid,
@@ -344,46 +345,47 @@ export async function deleteSection(formId: string, sectionId: string): Promise<
   });
 }
 
+const SEED_LABELS: Record<OptionKind, string[]> = {
+  choice: ["Option 1", "Option 2"],
+  grid_row: ["Row 1", "Row 2"],
+  grid_column: ["Column 1", "Column 2"],
+};
+
+/** The option kinds a type is answered through; empty for text, date and scale. */
+function optionKinds(type: QuestionType): OptionKind[] {
+  if (hasOptions(type)) return ["choice"];
+  if (hasGrid(type)) return ["grid_row", "grid_column"];
+  return [];
+}
+
 /**
  * A choice question with no choices and a grid with no axes cannot be answered,
- * so a new one arrives with the minimum that makes it usable.
+ * so a question arrives — and comes out of a type change — with the minimum
+ * that makes it usable. Kinds that already hold rows are left alone, which is
+ * what lets a dropdown become a multiple choice without losing its options.
  */
-async function seedOptions(
+async function seedMissingOptions(
   tx: DatabaseTransaction,
   questionId: string,
   type: QuestionType,
 ): Promise<void> {
-  const rows = [];
-  if (hasOptions(type)) {
-    rows.push(
-      { kind: "choice" as const, label: "Option 1" },
-      { kind: "choice" as const, label: "Option 2" },
-    );
-  }
-  if (hasGrid(type)) {
-    rows.push(
-      { kind: "grid_row" as const, label: "Row 1" },
-      { kind: "grid_row" as const, label: "Row 2" },
-      { kind: "grid_column" as const, label: "Column 1" },
-      { kind: "grid_column" as const, label: "Column 2" },
-    );
-  }
-  if (rows.length === 0) return;
+  const rows: { questionId: string; kind: OptionKind; label: string; value: string; position: number }[] =
+    [];
 
-  const counters = new Map<OptionKind, number>();
-  await tx.insert(questionOptions).values(
-    rows.map((row) => {
-      const position = counters.get(row.kind) ?? 0;
-      counters.set(row.kind, position + 1);
-      return {
+  for (const kind of optionKinds(type)) {
+    if ((await optionIds(tx, questionId, kind)).length > 0) continue;
+    rows.push(
+      ...SEED_LABELS[kind].map((label, position) => ({
         questionId,
-        kind: row.kind,
-        label: row.label,
-        value: toOptionValue(row.label),
+        kind,
+        label,
+        value: toOptionValue(label),
         position,
-      };
-    }),
-  );
+      })),
+    );
+  }
+
+  if (rows.length > 0) await tx.insert(questionOptions).values(rows);
 }
 
 export async function addQuestion(
@@ -420,7 +422,67 @@ export async function addQuestion(
       .returning({ id: questions.id });
     if (!created) throw new Error("Could not add the question");
 
-    await seedOptions(tx, created.id, type);
+    await seedMissingOptions(tx, created.id, type);
+  });
+}
+
+/**
+ * Switching a question's type keeps everything the new type can still hold.
+ *
+ * The label, help text and answering rules never depend on the type, so they
+ * survive untouched. The config survives when the new type's schema accepts it
+ * — short answer to paragraph keeps its length limits — and falls back to that
+ * type's defaults when it does not, rather than refusing the change and leaving
+ * the builder with a card it cannot fix.
+ *
+ * Options are the part that cannot always carry: a choice list means nothing on
+ * a grid and a grid axis means nothing on a text question. Those rows go, the
+ * kinds the new type needs are seeded, and a kind both types share is kept
+ * exactly as it was.
+ */
+export async function changeQuestionType(
+  formId: string,
+  questionId: string,
+  type: string,
+): Promise<ActionResult> {
+  if (!isQuestionType(type)) return { ok: false, message: "Unknown question type." };
+
+  return withDraft(formId, async (tx) => {
+    const question = await questionOf(tx, formId, questionId);
+    if (question.type === type) return OK;
+
+    const carried = buildConfig(type, question.config ?? {});
+    const built = carried.ok ? carried : buildConfig(type, {});
+    if (!built.ok) return built;
+
+    await tx
+      .update(questions)
+      .set({ type, config: built.config, updatedAt: new Date() })
+      .where(eq(questions.id, question.id));
+
+    const keep = optionKinds(type);
+    const drop = OPTION_KINDS.filter((kind) => !keep.includes(kind));
+    if (drop.length > 0) {
+      await tx
+        .delete(questionOptions)
+        .where(
+          and(eq(questionOptions.questionId, question.id), inArray(questionOptions.kind, drop)),
+        );
+    }
+
+    await seedMissingOptions(tx, question.id, type);
+
+    // Traversal ignores an option branch on a type that cannot branch, so a
+    // kept jump would be invisible until the type changed back and it
+    // reappeared pointing at a section that has since moved.
+    if (!canBranch(type)) {
+      await tx
+        .update(questionOptions)
+        .set({ nextAction: "next", nextSectionId: null })
+        .where(eq(questionOptions.questionId, question.id));
+    }
+
+    return OK;
   });
 }
 
