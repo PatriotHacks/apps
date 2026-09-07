@@ -10,7 +10,10 @@ const nextConfig: NextConfig = {
     "@patriothacks/ui",
   ],
   // `pg` resolves its driver at runtime; bundling it breaks that.
-  serverExternalPackages: ["pg"],
+  // pg-cloudflare carries the "workerd" export condition that selects the real socket.
+  // The adapter only applies that condition to packages listed here, so both must be named
+  // or pg resolves to pg-cloudflare/empty.js and every query fails at runtime.
+  serverExternalPackages: ["pg", "pg-cloudflare"],
 };
 
 export default nextConfig;

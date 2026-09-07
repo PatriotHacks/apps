@@ -10,7 +10,10 @@ const nextConfig: NextConfig = {
     "@patriothacks/ui",
   ],
   // `pg` resolves its driver at runtime; bundling it breaks that.
-  serverExternalPackages: ["pg"],
+  // pg-cloudflare carries the "workerd" export condition that selects the real socket.
+  // The adapter only applies that condition to packages listed here, so both must be named
+  // or pg resolves to pg-cloudflare/empty.js and every query fails at runtime.
+  serverExternalPackages: ["pg", "pg-cloudflare"],
   // Enables `forbidden()`, which is how an admin-only page refuses an organizer
   // with a real 403 instead of a redirect to a page that returns 200.
   experimental: { authInterrupts: true },

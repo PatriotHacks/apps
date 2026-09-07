@@ -3,7 +3,10 @@
   "main": ".open-next/worker.js",
   "name": "patriothacks-platform",
   "compatibility_date": "2026-09-06",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "compatibility_flags": [
+    "nodejs_compat",
+    "global_fetch_strictly_public"
+  ],
   "assets": {
     "binding": "ASSETS",
     "directory": ".open-next/assets"
@@ -14,13 +17,13 @@
       "service": "patriothacks-platform"
     }
   ],
+  "observability": {
+    "enabled": true
+  },
   "r2_buckets": [
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
       "bucket_name": "patriothacks-platform-cache"
     }
-  ],
-  "observability": {
-    "enabled": true
-  }
+  ]
 }
