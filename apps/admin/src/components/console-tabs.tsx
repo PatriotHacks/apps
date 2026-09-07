@@ -6,22 +6,22 @@ import { usePathname } from "next/navigation";
 
 import { activeHref, type NavItem } from "@/lib/nav";
 
-export function ConsoleNav({ items }: { items: NavItem[] }) {
+/** Secondary nav for a section that owns several pages. */
+export function ConsoleTabs({ items, label }: { items: NavItem[]; label: string }) {
   const active = activeHref(usePathname(), items);
 
   return (
-    <nav
-      aria-label="Console"
-      className="flex gap-1 overflow-x-auto p-3 md:min-h-0 md:flex-1 md:flex-col md:overflow-x-hidden md:overflow-y-auto"
-    >
+    <nav aria-label={label} className="flex gap-4 overflow-x-auto border-b px-6">
       {items.map((item) => (
         <Link
           key={item.href}
           href={item.href}
           aria-current={item.href === active ? "page" : undefined}
           className={cn(
-            "rounded-md px-3 py-2 text-sm whitespace-nowrap hover:bg-accent hover:text-accent-foreground",
-            item.href === active ? "bg-accent font-medium text-accent-foreground" : "text-muted-foreground",
+            "-mb-px border-b-2 py-3 text-sm whitespace-nowrap",
+            item.href === active
+              ? "border-primary font-medium text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           {item.label}
