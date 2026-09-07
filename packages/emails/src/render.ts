@@ -1,9 +1,9 @@
 import { escapeHtml, interpolate } from "./interpolate.ts";
 import { renderLayout, wrapText } from "./layout.tsx";
-import { type TemplateContext, type TemplateKey } from "./templates.ts";
+import { type MessageKey, type TemplateContext } from "./templates.ts";
 
 /** The stored row, narrowed to what rendering needs. */
-export type StoredTemplate<K extends TemplateKey = TemplateKey> = {
+export type StoredTemplate<K extends MessageKey = MessageKey> = {
   key: K;
   subject: string;
   bodyHtml: string;
@@ -23,15 +23,22 @@ export type RenderedEmail = {
  *
  * Only the HTML body escapes its values; the subject and the text body are not
  * markup, and escaping them would show `&amp;` to the reader.
+ *
+ * `unsubscribeUrl` is passed for broadcasts and omitted for transactional mail;
+ * the shell renders the link only when it is present.
  */
-export async function renderTemplate<K extends TemplateKey>(
+export async function renderTemplate<K extends MessageKey>(
   template: StoredTemplate<K>,
   context: TemplateContext<K>,
+  unsubscribeUrl?: string,
 ): Promise<RenderedEmail> {
   const filled = context as TemplateContext;
   const subject = interpolate(template.subject, filled);
-  const text = wrapText(interpolate(template.bodyText, filled));
-  const html = await renderLayout(interpolate(template.bodyHtml, filled, escapeHtml));
+  const text = wrapText(interpolate(template.bodyText, filled), unsubscribeUrl);
+  const html = await renderLayout(
+    interpolate(template.bodyHtml, filled, escapeHtml),
+    unsubscribeUrl,
+  );
 
   return { subject, html, text };
 }

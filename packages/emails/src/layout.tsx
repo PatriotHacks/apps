@@ -1,4 +1,4 @@
-import { Body, Container, Head, Hr, Html, Section, Text, render } from "react-email";
+import { Body, Container, Head, Hr, Html, Link, Section, Text, render } from "react-email";
 
 /**
  * The shell every transactional email is poured into: header, footer and the
@@ -44,7 +44,22 @@ const rule = { borderColor: "#e5e5e5", margin: "28px 0 16px" };
 
 const footer = { color: "#6b7280", fontSize: "12px", lineHeight: "18px", margin: "0" };
 
-export function EmailLayout({ bodyHtml }: { bodyHtml: string }) {
+const unsubscribeLink = { color: "#6b7280", textDecoration: "underline" };
+
+/**
+ * `unsubscribeUrl` is supplied for broadcasts and omitted for transactional
+ * mail. The link lives in the shell rather than in the authored body so a
+ * broadcast cannot ship without one — forgetting it is not an option an author
+ * has. Transactional decision and RSVP notices are owed to the applicant
+ * regardless of their broadcast preference, so they carry no link at all.
+ */
+export function EmailLayout({
+  bodyHtml,
+  unsubscribeUrl,
+}: {
+  bodyHtml: string;
+  unsubscribeUrl?: string | undefined;
+}) {
   return (
     <Html lang="en">
       <Head />
@@ -63,6 +78,13 @@ export function EmailLayout({ bodyHtml }: { bodyHtml: string }) {
           <Text style={footer}>
             {BRAND} · George Mason University · Questions? {SUPPORT_EMAIL}
           </Text>
+          {unsubscribeUrl ? (
+            <Text style={footer}>
+              <Link href={unsubscribeUrl} style={unsubscribeLink}>
+                Unsubscribe from announcements
+              </Link>
+            </Text>
+          ) : null}
         </Container>
       </Body>
     </Html>
@@ -70,10 +92,11 @@ export function EmailLayout({ bodyHtml }: { bodyHtml: string }) {
 }
 
 /** The plain text counterpart of the shell above. */
-export function wrapText(bodyText: string): string {
-  return `${bodyText.trim()}\n\n—\n${BRAND} · George Mason University\nQuestions? ${SUPPORT_EMAIL}\n`;
+export function wrapText(bodyText: string, unsubscribeUrl?: string): string {
+  const tail = unsubscribeUrl ? `Unsubscribe from announcements: ${unsubscribeUrl}\n` : "";
+  return `${bodyText.trim()}\n\n—\n${BRAND} · George Mason University\nQuestions? ${SUPPORT_EMAIL}\n${tail}`;
 }
 
-export function renderLayout(bodyHtml: string): Promise<string> {
-  return render(<EmailLayout bodyHtml={bodyHtml} />);
+export function renderLayout(bodyHtml: string, unsubscribeUrl?: string): Promise<string> {
+  return render(<EmailLayout bodyHtml={bodyHtml} unsubscribeUrl={unsubscribeUrl} />);
 }

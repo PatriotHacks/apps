@@ -1,4 +1,4 @@
-import { variablesFor, type TemplateContext, type TemplateKey } from "./templates.ts";
+import { variablesFor, type MessageKey, type TemplateContext } from "./templates.ts";
 
 /** `{{ full_name }}` — whitespace tolerated, names are lower snake case. */
 const PLACEHOLDER = /\{\{\s*([a-z0-9_]+)\s*\}\}/gi;
@@ -26,7 +26,7 @@ export function placeholdersIn(source: string): string[] {
  * the save-time gate — an unknown variable is caught by the admin editing the
  * template, not discovered when 800 rejection emails go out.
  */
-export function unknownVariables(key: TemplateKey, ...sources: string[]): string[] {
+export function unknownVariables(key: MessageKey, ...sources: string[]): string[] {
   const declared = new Set<string>(variablesFor(key));
   const seen = new Set<string>();
 

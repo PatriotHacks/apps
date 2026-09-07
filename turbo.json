@@ -14,6 +14,7 @@
     "RESEND_API_KEY",
     "EMAIL_FROM",
     "PLATFORM_URL",
+    "UNSUBSCRIBE_SECRET",
     "NEXT_PUBLIC_AUTH_PROVIDERS"
   ],
   "tasks": {
