@@ -367,12 +367,21 @@ async function main() {
   try {
     await seedAuthUsers(db);
     await seedEmailTemplates(db);
-    await seedSampleForm(db);
+    // The sample form is opt-in. It exercises all 11 question types and real
+    // branching, which is useful locally, but nobody wants a fake application
+    // sitting in a real console.
+    if (process.env.SEED_SAMPLE_FORM === "1") {
+      await seedSampleForm(db);
+    }
   } finally {
     await client.end();
   }
 
-  console.log(`Seeded ${USERS.length} console users, 4 email templates and form "hacker".`);
+  const withForm = process.env.SEED_SAMPLE_FORM === "1";
+  console.log(
+    `Seeded ${USERS.length} console users, 4 email templates` +
+      (withForm ? ' and form "hacker".' : ". Set SEED_SAMPLE_FORM=1 for the sample form."),
+  );
   console.log(`  admin     ${ADMIN.email} / ${SEED_PASSWORD}`);
   console.log(`  organizer ${ORGANIZER.email} / ${SEED_PASSWORD}`);
 }
