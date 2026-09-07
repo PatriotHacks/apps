@@ -1,33 +1,27 @@
-import { AppShell, Badge, Button, ThemeToggle } from "@patriothacks/ui";
+import { AppShell, ThemeToggle } from "@patriothacks/ui";
 import Link from "next/link";
 
-import { signOut } from "@/app/actions";
-import { ConsoleNav } from "@/components/console-nav";
+import { ConsoleSidebar } from "@/components/console-sidebar";
 import { type Staff } from "@/lib/auth";
-import { navItemsFor } from "@/lib/nav";
 
+/**
+ * `--console-header-h` is the header's outer height, border included. The
+ * sidebar offsets and sizes itself against it, so the two stay in step from one
+ * declaration.
+ */
 export function ConsoleShell({ staff, children }: { staff: Staff; children: React.ReactNode }) {
   return (
     <AppShell
+      className="[--console-header-h:calc(3.5rem+1px)]"
       header={
-        <div className="flex items-center justify-between gap-4 px-4 py-3">
-          <Link href="/forms" className="text-sm font-semibold">
+        <div className="flex h-14 items-center justify-between gap-4 px-4">
+          <Link href="/forms" className="text-sm font-semibold tracking-tight">
             PatriotHacks Console
           </Link>
-
-          <div className="flex items-center gap-3">
-            <span className="hidden text-sm text-muted-foreground sm:inline">{staff.email}</span>
-            <Badge variant="secondary">{staff.role}</Badge>
-            <ThemeToggle />
-            <form action={signOut}>
-              <Button type="submit" variant="outline" size="sm">
-                Sign out
-              </Button>
-            </form>
-          </div>
+          <ThemeToggle />
         </div>
       }
-      sidebar={<ConsoleNav items={navItemsFor(staff.role)} />}
+      sidebar={<ConsoleSidebar staff={staff} />}
     >
       {children}
     </AppShell>
