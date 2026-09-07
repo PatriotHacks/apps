@@ -53,7 +53,7 @@ function AuthLayout({ wordmark, heading, children }: AuthLayoutProps) {
     <div className="flex min-h-svh bg-background">
       <div className="flex flex-1 items-center justify-center px-6 py-16">
         <div className="w-full max-w-sm">
-          <p className="font-serif text-4xl lowercase italic min-[900px]:text-[2.75rem]">
+          <p className="font-serif text-4xl leading-[1.05] lowercase italic min-[900px]:text-[2.75rem]">
             {wordmark}
           </p>
           <h1 className="mt-10 font-serif text-xl text-muted-foreground">{heading}</h1>
