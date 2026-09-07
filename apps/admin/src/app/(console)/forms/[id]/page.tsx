@@ -27,29 +27,28 @@ function branchTarget(
   return null;
 }
 
-function ImmutabilityNotice({ status }: { status: Form["status"] }) {
+function StatusNotice({ status }: { status: Form["status"] }) {
   if (status === "draft") {
     return (
       <div className="rounded-lg border border-dashed p-4">
-        <p className="text-sm font-medium">Draft — structure is still editable</p>
+        <p className="text-sm font-medium">Draft — nobody can see this yet</p>
         <p className="text-sm text-muted-foreground">
-          Publishing is irreversible. Once this form is published its sections, questions and
-          branching are frozen for good.
+          Publishing puts it in front of applicants. It stays editable afterwards.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border-2 border-destructive/40 bg-destructive/5 p-4">
-      <p className="text-sm font-semibold text-destructive">
-        {status === "published" ? "Published — locked forever" : "Closed — locked forever"}
+    <div className="rounded-lg border p-4">
+      <p className="text-sm font-medium">
+        {status === "published" ? "Published — applicants can fill this in" : "Closed"}
       </p>
-      <p className="text-sm text-destructive/90">
-        This form has been published, so its structure is immutable. Sections, questions, options and
-        branch targets can never be changed, reordered or deleted — not by an admin, not by support.
-        Applicants have already answered against this exact shape. To ask something different, create
-        a new form.
+      <p className="text-sm text-muted-foreground">
+        Still editable. Answers already given are kept — rewording, reordering, adding questions and
+        changing branch targets all leave them untouched. Only deleting a question, or switching one
+        to a type that cannot read its answers, destroys anything, and the builder names how many
+        before it does.
       </p>
     </div>
   );
@@ -130,7 +129,7 @@ export default async function FormDetailPage({ params }: { params: Promise<{ id:
   if (!detail) notFound();
 
   const { form, sections, sectionNames } = detail;
-  const editable = staff.role === "admin" && form.status === "draft";
+  const editable = staff.role === "admin";
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -156,7 +155,7 @@ export default async function FormDetailPage({ params }: { params: Promise<{ id:
         </div>
       </div>
 
-      <ImmutabilityNotice status={form.status} />
+      <StatusNotice status={form.status} />
 
       <dl className="grid gap-4 text-sm sm:grid-cols-3">
         <div>
