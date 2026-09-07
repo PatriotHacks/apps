@@ -15,6 +15,9 @@ import { requireStaff } from "@/lib/auth";
 import { formatWindow } from "@/lib/format";
 import { listForms } from "@/lib/forms";
 
+import { createDraftForm } from "./actions";
+import { DeleteForm } from "./delete-form";
+
 const EDIT_POLICY: Record<Form["editPolicy"], string> = {
   locked: "Locked",
   per_question: "Per question",
@@ -36,9 +39,14 @@ export default async function FormsPage() {
         </div>
 
         {isAdmin ? (
-          <Button asChild size="sm">
-            <Link href="/forms/new">New form</Link>
-          </Button>
+          // A plain form post rather than a client component: the action creates
+          // the draft and redirects into the builder, so there is nothing for
+          // the browser to hold on to in between.
+          <form action={createDraftForm}>
+            <Button type="submit" size="sm">
+              New form
+            </Button>
+          </form>
         ) : null}
       </div>
 
@@ -52,13 +60,14 @@ export default async function FormsPage() {
             <TableHead className="text-right">Sections</TableHead>
             <TableHead className="text-right">Questions</TableHead>
             <TableHead className="text-right">Submissions</TableHead>
+            {isAdmin ? <TableHead className="w-0" /> : null}
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-muted-foreground">
+              <TableCell colSpan={isAdmin ? 8 : 7} className="text-muted-foreground">
                 No forms yet.
               </TableCell>
             </TableRow>
@@ -70,9 +79,11 @@ export default async function FormsPage() {
                 <Link href={`/forms/${row.id}`} className="font-medium hover:underline">
                   {row.title}
                 </Link>
+                {/* Editing is no longer draft-only: a published form stays
+                    editable, with the builder warning about what that costs. */}
                 <p className="text-xs text-muted-foreground">
                   /{row.slug}
-                  {isAdmin && row.status === "draft" ? (
+                  {isAdmin ? (
                     <>
                       {" · "}
                       <Link href={`/forms/${row.id}/edit`} className="hover:underline">
@@ -96,6 +107,15 @@ export default async function FormsPage() {
                   {row.submissionCount}
                 </Link>
               </TableCell>
+              {isAdmin ? (
+                <TableCell>
+                  <DeleteForm
+                    formId={row.id}
+                    title={row.title}
+                    submissionCount={row.submissionCount}
+                  />
+                </TableCell>
+              ) : null}
             </TableRow>
           ))}
         </TableBody>

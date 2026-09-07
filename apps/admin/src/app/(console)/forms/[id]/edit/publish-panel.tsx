@@ -35,12 +35,12 @@ export function PublishPanel({
 
   return (
     <section className="flex flex-col gap-3 rounded-lg border-2 border-destructive/40 bg-destructive/5 p-4">
-      <h2 className="text-sm font-semibold text-destructive">Publish is permanent</h2>
+      <h2 className="text-sm font-semibold text-destructive">Publishing opens this form</h2>
       <p className="text-sm text-destructive/90">
-        Publishing freezes this form for good. Sections, questions, options and branch targets can
-        never be changed, reordered or deleted afterwards — not by an admin, not by support.
-        Applicants answer against this exact shape, so a form published with broken branching can
-        never be repaired. To ask something different you have to create a new form.
+        Applicants can start filling this in the moment it is published, and anything you change
+        afterwards changes it underneath them. The structure stays editable — but from here on
+        deleting a question deletes the answers to it, and every structural save has to leave the
+        branching traversable or it is refused.
       </p>
 
       {shown.length > 0 ? (
@@ -82,7 +82,7 @@ export function PublishPanel({
             })
           }
         >
-          {pending ? "Publishing…" : "Publish permanently"}
+          {pending ? "Publishing…" : "Publish this form"}
         </Button>
       </div>
     </section>
