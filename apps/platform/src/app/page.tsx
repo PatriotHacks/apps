@@ -26,6 +26,7 @@ export default async function Home() {
             id: forms.id,
             slug: forms.slug,
             title: forms.title,
+            description: forms.description,
             status: submissions.status,
           })
           .from(forms)
@@ -36,7 +37,12 @@ export default async function Home() {
       )
     : await withRls(ANON, (tx) =>
         tx
-          .select({ id: forms.id, slug: forms.slug, title: forms.title })
+          .select({
+            id: forms.id,
+            slug: forms.slug,
+            title: forms.title,
+            description: forms.description,
+          })
           .from(forms)
           .then((list) => list.map((row) => ({ ...row, status: null }))),
       );
@@ -79,8 +85,11 @@ export default async function Home() {
           <ul className="flex flex-col divide-y rounded-md border">
             {rows.map((row) => (
               <li key={row.id} className="flex items-center justify-between gap-4 p-4">
-                <div className="flex flex-col gap-0.5">
+                <div className="flex min-w-0 flex-col gap-0.5">
                   <span className="text-sm font-medium">{row.title}</span>
+                  {row.description ? (
+                    <span className="text-sm text-muted-foreground">{row.description}</span>
+                  ) : null}
                   <span className="text-xs text-muted-foreground">
                     {claims
                       ? row.status === null
