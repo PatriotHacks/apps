@@ -158,8 +158,13 @@
 /* --------------------------------------------------------------- theme --- */
 
 @theme {
+  /* `--font-ui` is set by each app's root layout via `next/font`, which
+     self-hosts the file and names the family. Swapping typefaces is a one-line
+     change there; nothing below or in any component names a family. The
+     fallback keeps this stylesheet usable on its own — an app that sets no
+     `--font-ui` falls back to the system stack rather than to nothing. */
   --font-sans:
-    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    var(--font-ui, ui-sans-serif), system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji";
   --font-serif: ui-serif, Georgia, "Times New Roman", serif;
