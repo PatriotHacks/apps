@@ -129,6 +129,18 @@ export const answers = pgTable(
       to: authenticatedRole,
       using: isOrganizer(),
     }),
+    // Deleting a question from a live form has to delete the answers to it
+    // first: `answers.question_id` has no cascade, so the question delete would
+    // otherwise fail on the foreign key. The applicant policies above are
+    // scoped to the caller's own submission, so without this an admin's delete
+    // matches no rows and the failure looks like a database bug rather than a
+    // missing policy. The delete trigger still preserves every value in
+    // `answer_revisions`.
+    pgPolicy("answers_delete_admin", {
+      for: "delete",
+      to: authenticatedRole,
+      using: isAdmin(),
+    }),
   ],
 );
 
