@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { sectionLabel } from "@/lib/format";
 
+import { DeleteForm } from "../../delete-form";
 import { addSection } from "./actions";
 import { useAction } from "./controls";
 import { LiveFormWarning } from "./live-warning";
@@ -62,6 +63,13 @@ export function Builder({
             <Button asChild variant="outline" size="sm">
               <Link href={`/forms/${form.id}`}>Read-only view</Link>
             </Button>
+            <DeleteForm
+              formId={form.id}
+              title={form.title}
+              submissionCount={submissionCount}
+              redirectTo="/forms"
+              trigger="Delete form"
+            />
           </div>
         </div>
 

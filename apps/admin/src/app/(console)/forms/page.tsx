@@ -16,6 +16,7 @@ import { formatWindow } from "@/lib/format";
 import { listForms } from "@/lib/forms";
 
 import { createDraftForm } from "./actions";
+import { DeleteForm } from "./delete-form";
 
 const EDIT_POLICY: Record<Form["editPolicy"], string> = {
   locked: "Locked",
@@ -59,13 +60,14 @@ export default async function FormsPage() {
             <TableHead className="text-right">Sections</TableHead>
             <TableHead className="text-right">Questions</TableHead>
             <TableHead className="text-right">Submissions</TableHead>
+            {isAdmin ? <TableHead className="w-0" /> : null}
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {rows.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-muted-foreground">
+              <TableCell colSpan={isAdmin ? 8 : 7} className="text-muted-foreground">
                 No forms yet.
               </TableCell>
             </TableRow>
@@ -105,6 +107,15 @@ export default async function FormsPage() {
                   {row.submissionCount}
                 </Link>
               </TableCell>
+              {isAdmin ? (
+                <TableCell>
+                  <DeleteForm
+                    formId={row.id}
+                    title={row.title}
+                    submissionCount={row.submissionCount}
+                  />
+                </TableCell>
+              ) : null}
             </TableRow>
           ))}
         </TableBody>
