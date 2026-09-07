@@ -87,6 +87,41 @@ export async function countAudience(
   return { matched, unsubscribed: matched - recipients, recipients };
 }
 
+/** `not exists` against this broadcast's own send rows — the resume marker. */
+const notYetAttempted = (broadcastId: string) => sql`not exists (
+    select 1 from ${emailSends}
+    where ${emailSends.broadcastId} = ${broadcastId}
+      and ${emailSends.toUserId} = ${submissions.userId}
+  )`;
+
+/** How many of the audience this broadcast has not tried yet. */
+export function countRemaining(
+  tx: DatabaseTransaction,
+  filter: AudienceFilter,
+  broadcastId: string,
+): Promise<number> {
+  return countDistinctUsers(
+    tx,
+    and(audienceConditions(filter), notUnsubscribed, notYetAttempted(broadcastId)) as SQL,
+  );
+}
+
+/** What the broadcast has actually done so far, read off `email_sends`. */
+export async function countAttempts(
+  tx: DatabaseTransaction,
+  broadcastId: string,
+): Promise<{ sent: number; failed: number }> {
+  const [row] = await tx
+    .select({
+      sent: sql<number>`count(*) filter (where ${emailSends.status} = 'sent')::int`,
+      failed: sql<number>`count(*) filter (where ${emailSends.status} = 'failed')::int`,
+    })
+    .from(emailSends)
+    .where(eq(emailSends.broadcastId, broadcastId));
+
+  return { sent: row?.sent ?? 0, failed: row?.failed ?? 0 };
+}
+
 /**
  * The audience, resolved. `excludeSentFor` drops anyone who already has an
  * `email_sends` row for that broadcast, which is what makes the send resumable:
@@ -103,13 +138,7 @@ export async function selectRecipients(
 ): Promise<Recipient[]> {
   const conditions: SQL[] = [audienceConditions(filter), notUnsubscribed];
 
-  if (options.excludeSentFor) {
-    conditions.push(sql`not exists (
-      select 1 from ${emailSends}
-      where ${emailSends.broadcastId} = ${options.excludeSentFor}
-        and ${emailSends.toUserId} = ${submissions.userId}
-    )`);
-  }
+  if (options.excludeSentFor) conditions.push(notYetAttempted(options.excludeSentFor));
 
   const query = tx
     .selectDistinct({
