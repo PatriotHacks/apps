@@ -63,6 +63,15 @@ export type AudienceFilter = {
   rsvpStatuses: AudienceRsvpStatus[];
 };
 
+export type AudienceCount = {
+  /** Distinct users the filter matches, before the unsubscribe list. */
+  matched: number;
+  /** How many of those opted out. Shown before sending, not discovered after. */
+  unsubscribed: number;
+  /** What will actually be mailed. */
+  recipients: number;
+};
+
 export const EMPTY_FILTER: AudienceFilter = { formId: null, statuses: [], rsvpStatuses: [] };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

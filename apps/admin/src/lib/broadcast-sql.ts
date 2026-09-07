@@ -7,7 +7,7 @@ import {
 } from "@patriothacks/database";
 import { and, eq, inArray, sql, type SQL } from "drizzle-orm";
 
-import type { AudienceFilter } from "@/lib/broadcast-audience";
+import type { AudienceCount, AudienceFilter } from "@/lib/broadcast-audience";
 
 /**
  * What an audience filter compiles to.
@@ -22,15 +22,6 @@ export type Recipient = {
   userId: string;
   email: string;
   fullName: string;
-};
-
-export type AudienceCount = {
-  /** Distinct users the filter matches, before the unsubscribe list. */
-  matched: number;
-  /** How many of those opted out. Shown before sending, not discovered after. */
-  unsubscribed: number;
-  /** What will actually be mailed. */
-  recipients: number;
 };
 
 /**

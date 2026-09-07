@@ -12,9 +12,13 @@ import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
-import { parseAudienceFilter, type AudienceFilter } from "@/lib/broadcast-audience";
+import {
+  parseAudienceFilter,
+  type AudienceCount,
+  type AudienceFilter,
+} from "@/lib/broadcast-audience";
 import { sendBroadcastChunk, type BroadcastProgress } from "@/lib/broadcast-send";
-import { countAudience, selectRecipients, type AudienceCount } from "@/lib/broadcast-sql";
+import { countAudience, selectRecipients } from "@/lib/broadcast-sql";
 import { queryAsAdmin } from "@/lib/db";
 import { unsubscribeUrlFor } from "@/lib/unsubscribe";
 
