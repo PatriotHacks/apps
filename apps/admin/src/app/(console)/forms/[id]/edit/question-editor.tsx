@@ -466,29 +466,35 @@ export function QuestionEditor({
             </div>
           </div>
 
-          <ConfirmDelete
-            trigger="Delete question"
-            heading={`Delete "${question.label}"?`}
-            confirmLabel={
-              answerCount === 0 ? "Delete this question" : `Delete it and ${answerPhrase(answerCount)}`
-            }
-            disabled={pending}
-            body={
-              answerCount === 0 ? (
-                <p>No one has answered this question yet, so nothing is lost with it.</p>
-              ) : (
-                <p>
-                  <span className="font-semibold">
-                    {answerPhrase(answerCount)} to this question will be deleted with it.
-                  </span>{" "}
-                  Those responses stop appearing in the console and in every export. They are kept in
-                  the revision history for audit only, and re-adding the question does not bring them
-                  back.
-                </p>
-              )
-            }
-            onConfirm={() => run(() => deleteQuestion(formId, question.id, answerCount))}
-          />
+          {/* Wrapped so the trigger shrinks to its text instead of stretching
+              across the card the way a bare flex child would. */}
+          <div className="self-start">
+            <ConfirmDelete
+              trigger="Delete question"
+              heading={`Delete "${question.label}"?`}
+              confirmLabel={
+                answerCount === 0
+                  ? "Delete this question"
+                  : `Delete it and ${answerPhrase(answerCount)}`
+              }
+              disabled={pending}
+              body={
+                answerCount === 0 ? (
+                  <p>No one has answered this question yet, so nothing is lost with it.</p>
+                ) : (
+                  <p>
+                    <span className="font-semibold">
+                      {answerPhrase(answerCount)} to this question will be deleted with it.
+                    </span>{" "}
+                    Those responses stop appearing in the console and in every export. They are kept
+                    in the revision history for audit only, and re-adding the question does not bring
+                    them back.
+                  </p>
+                )
+              }
+              onConfirm={() => run(() => deleteQuestion(formId, question.id, answerCount))}
+            />
+          </div>
         </div>
       )}
     </li>
