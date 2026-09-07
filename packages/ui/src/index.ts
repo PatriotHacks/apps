@@ -1,6 +1,14 @@
 export { cn } from "cn";
 
 export { AppShell, type AppShellProps } from "#components/app-shell";
+export {
+  AuthActionButton,
+  AuthDisclosure,
+  AuthNotice,
+  AuthProviderButton,
+  type OAuthProvider,
+} from "#components/auth-controls";
+export { AuthLayout, type AuthLayoutProps } from "#components/auth-layout";
 export { Badge, badgeVariants } from "#components/badge";
 export { Button, buttonVariants } from "#components/button";
 export {
