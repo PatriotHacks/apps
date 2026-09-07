@@ -9,6 +9,8 @@ import { loadForm, loadSubmission } from "@/lib/form-data";
 
 import { ReadOnlyAnswers } from "../read-only-answers";
 
+import { RsvpPanel } from "./rsvp-panel";
+
 export default async function ReviewPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const claims = await requireClaims();
@@ -45,6 +47,14 @@ export default async function ReviewPage({ params }: { params: Promise<{ slug: s
             </Link>
           )}
         </div>
+
+        {existing.submission.status === "accepted" ? (
+          <RsvpPanel
+            slug={slug}
+            rsvpStatus={existing.submission.rsvpStatus}
+            rsvpAt={existing.submission.rsvpAt}
+          />
+        ) : null}
 
         <ReadOnlyAnswers definition={definition} answers={existing.answers} />
       </div>

@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 
 import { SubmissionStatusBadge, submissionStatusLabel } from "@/components/submission-status-badge";
 import { NOT_ASKED, summariseAnswer, viewAnswer } from "@/lib/answer-view";
+import { requireStaff } from "@/lib/auth";
 import { formatDateTime } from "@/lib/format";
 import {
   PER_PAGE_CHOICES,
@@ -27,6 +28,7 @@ import {
 import { loadSubmissionGrid, type SubmissionWithAnswers } from "@/lib/submissions";
 
 import { AnswerFilterRows } from "./answer-filter-rows";
+import { BulkStatus } from "./bulk-status";
 import { filterableQuestion } from "./filterable-question";
 
 /**
@@ -133,7 +135,7 @@ export default async function FormSubmissionsPage({
   searchParams: Promise<SearchParams>;
 }) {
   const [{ id }, rawParams] = await Promise.all([params, searchParams]);
-  const grid = await loadSubmissionGrid(id, rawParams);
+  const [staff, grid] = await Promise.all([requireStaff(), loadSubmissionGrid(id, rawParams)]);
   if (grid === null) notFound();
 
   const { form, questions, query, total, rows } = grid;
@@ -255,6 +257,10 @@ export default async function FormSubmissionsPage({
           </Button>
         </div>
       </form>
+
+      {staff.role === "admin" ? (
+        <BulkStatus formId={form.id} search={exportSearch} total={total} />
+      ) : null}
 
       <Table>
         <TableHeader>

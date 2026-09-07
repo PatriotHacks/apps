@@ -13,7 +13,7 @@
     "db:generate": "pnpm --filter @patriothacks/database db:generate",
     "db:migrate": "pnpm --filter @patriothacks/database db:migrate",
     "db:seed": "pnpm --filter @patriothacks/database db:seed",
-    "db:reset": "supabase db reset --no-seed && pnpm db:migrate && pnpm db:seed",
+    "db:reset": "node scripts/db-reset.mjs",
     "supabase": "supabase",
     "test": "turbo test",
     "postinstall": "node scripts/link-env.mjs"

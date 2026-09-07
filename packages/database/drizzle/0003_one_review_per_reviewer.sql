@@ -1,0 +1,1 @@
+ALTER TABLE "submission_reviews" ADD CONSTRAINT "submission_reviews_submission_id_reviewer_id_unique" UNIQUE("submission_id","reviewer_id");

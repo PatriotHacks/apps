@@ -11,6 +11,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/forms", label: "Forms" },
   { href: "/forms/new", label: "New form", adminOnly: true },
   { href: "/emails/templates", label: "Emails", adminOnly: true },
+  { href: "/emails/broadcasts", label: "Broadcasts", adminOnly: true },
 ];
 
 export function navItemsFor(role: StaffRole): NavItem[] {
