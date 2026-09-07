@@ -115,9 +115,21 @@ it never touches the `public` schema.
 
 ## Working on a local database instead
 
-`pnpm db:reset` rebuilds a local Supabase stack in Docker from scratch. It needs Docker running and
-roughly 10GB free, and it is the one path in this README not verified end to end — everything above
-was.
+You can develop against a local Supabase stack rather than a hosted project. Needs Docker running
+and ~10GB free for the images.
+
+```bash
+pnpm supabase start   # first run pulls ~6GB
+pnpm db:reset         # wipes local, migrates, seeds
+```
+
+`db:reset` reads the connection string back from the running stack rather than from `.env`, and
+refuses to proceed if it isn't localhost. That matters: the obvious version of this script resets
+your local database and then migrates and seeds whatever `DIRECT_DATABASE_URL` points at, which for
+most people is production.
+
+`pnpm supabase status` prints the local URLs — Studio on :54323, and Mailpit on :54324 catches every
+email the app sends so nothing real goes out in development.
 
 ---
 
