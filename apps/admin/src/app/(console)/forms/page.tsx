@@ -77,9 +77,11 @@ export default async function FormsPage() {
                 <Link href={`/forms/${row.id}`} className="font-medium hover:underline">
                   {row.title}
                 </Link>
+                {/* Editing is no longer draft-only: a published form stays
+                    editable, with the builder warning about what that costs. */}
                 <p className="text-xs text-muted-foreground">
                   /{row.slug}
-                  {isAdmin && row.status === "draft" ? (
+                  {isAdmin ? (
                     <>
                       {" · "}
                       <Link href={`/forms/${row.id}/edit`} className="hover:underline">
