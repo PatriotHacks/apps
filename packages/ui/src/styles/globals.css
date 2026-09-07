@@ -68,10 +68,10 @@
 
   /* Sign-in art panel. Four flat planes: a near-black navy, a mid slate-blue
      and the two ends of the soft grey gradient behind them. */
-  --auth-art-ink: oklch(0.21 0.045 265);
-  --auth-art-slate: oklch(0.52 0.08 262);
-  --auth-art-mist: oklch(0.94 0.006 262);
-  --auth-art-mist-edge: oklch(0.79 0.014 262);
+  --auth-art-ink: oklch(0.21 0.045 155);
+  --auth-art-slate: oklch(0.52 0.08 155);
+  --auth-art-mist: oklch(0.94 0.006 155);
+  --auth-art-mist-edge: oklch(0.79 0.014 155);
 }
 
 /* ----------------------------------------------------------------- dark --- */
@@ -111,10 +111,10 @@
     --input: oklch(1 0 0 / 15%);
     --ring: oklch(0.72 0.135 155);
 
-    --auth-art-ink: oklch(0.18 0.042 265);
-    --auth-art-slate: oklch(0.46 0.075 262);
-    --auth-art-mist: oklch(0.31 0.02 262);
-    --auth-art-mist-edge: oklch(0.21 0.014 262);
+    --auth-art-ink: oklch(0.18 0.042 155);
+    --auth-art-slate: oklch(0.46 0.075 155);
+    --auth-art-mist: oklch(0.31 0.02 155);
+    --auth-art-mist-edge: oklch(0.21 0.014 155);
   }
 }
 
@@ -149,10 +149,10 @@
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.72 0.135 155);
 
-  --auth-art-ink: oklch(0.18 0.042 265);
-  --auth-art-slate: oklch(0.46 0.075 262);
-  --auth-art-mist: oklch(0.31 0.02 262);
-  --auth-art-mist-edge: oklch(0.21 0.014 262);
+  --auth-art-ink: oklch(0.18 0.042 155);
+  --auth-art-slate: oklch(0.46 0.075 155);
+  --auth-art-mist: oklch(0.31 0.02 155);
+  --auth-art-mist-edge: oklch(0.21 0.014 155);
 }
 
 /* --------------------------------------------------------------- theme --- */
