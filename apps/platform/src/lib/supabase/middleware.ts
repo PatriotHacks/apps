@@ -4,7 +4,16 @@ import { NextResponse, type NextRequest } from "next/server";
 /** Reachable without a session. Everything else needs one. */
 const PUBLIC_PREFIXES = ["/login", "/auth"];
 
+/**
+ * The index lists what is open so someone can see whether it is worth making an
+ * account. Only this exact path — `/[slug]` still needs a session, and the
+ * `forms_select_anon` policy grants `anon` nothing beyond the form rows
+ * themselves, so a signed-out visitor can read the list and no more.
+ */
+const PUBLIC_PATHS = ["/"];
+
 const isPublic = (pathname: string) =>
+  PUBLIC_PATHS.includes(pathname) ||
   PUBLIC_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 
 export async function updateSession(request: NextRequest) {

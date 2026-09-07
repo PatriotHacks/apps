@@ -36,6 +36,20 @@
       "when": 1788738903325,
       "tag": "0004_restrict_applicant_status_writes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788766326704,
+      "tag": "0005_admin_answer_delete",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788770518983,
+      "tag": "0006_public_form_index",
+      "breakpoints": true
     }
   ]
 }

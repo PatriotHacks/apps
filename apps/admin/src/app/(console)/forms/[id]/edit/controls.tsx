@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Label } from "@patriothacks/ui";
+import { Button, Label, cn } from "@patriothacks/ui";
 import type { BranchAction } from "@patriothacks/form-engine";
 import { useState, useTransition, type ReactNode } from "react";
 
@@ -64,59 +64,6 @@ export function Field({
   );
 }
 
-export function OrderControls({
-  name,
-  canMoveUp,
-  canMoveDown,
-  disabled,
-  onMoveUp,
-  onMoveDown,
-  onDelete,
-}: {
-  name: string;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  disabled: boolean;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-1">
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        aria-label={`Move ${name} up`}
-        disabled={disabled || !canMoveUp}
-        onClick={onMoveUp}
-      >
-        ↑
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        aria-label={`Move ${name} down`}
-        disabled={disabled || !canMoveDown}
-        onClick={onMoveDown}
-      >
-        ↓
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        aria-label={`Delete ${name}`}
-        disabled={disabled}
-        onClick={onDelete}
-      >
-        Delete
-      </Button>
-    </div>
-  );
-}
-
 export interface BranchTarget {
   id: string;
   label: string;
@@ -150,10 +97,12 @@ export function BranchSelect({
 }) {
   const value = action === "section" && targetId ? `${SECTION_PREFIX}${targetId}` : action;
 
-  return (
-    <Field id={id} label={label}>
+  // An option's branch sits on the option's own row, where a second visible
+  // label would only repeat what the row already says.
+  const select = (
       <select
         id={id}
+        aria-label={label.length > 0 ? undefined : "Where this leads"}
         className={SELECT_CLASS}
         value={value}
         disabled={disabled}
@@ -174,6 +123,136 @@ export function BranchSelect({
           </option>
         ))}
       </select>
+  );
+
+  if (label.length === 0) return select;
+  return (
+    <Field id={id} label={label}>
+      {select}
     </Field>
   );
+}
+
+/**
+ * A text field that reads as text until you edit it. The border only appears on
+ * hover and focus, so a card at rest looks like the form it describes rather
+ * than a rack of inputs — which is the whole point of editing in place.
+ */
+export function InlineInput({
+  value,
+  placeholder,
+  disabled,
+  className,
+  ariaLabel,
+  onChange,
+  onCommit,
+}: {
+  value: string;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+  ariaLabel: string;
+  onChange: (next: string) => void;
+  onCommit: () => void;
+}) {
+  return (
+    <input
+      type="text"
+      aria-label={ariaLabel}
+      value={value}
+      placeholder={placeholder}
+      disabled={disabled}
+      onChange={(event) => onChange(event.target.value)}
+      onBlur={onCommit}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        event.currentTarget.blur();
+      }}
+      className={cn(
+        "w-full min-w-0 rounded-md border border-transparent bg-transparent px-2 py-1 outline-none",
+        "hover:border-input focus:border-ring focus:ring-[3px] focus:ring-ring/50",
+        "placeholder:text-muted-foreground disabled:pointer-events-none disabled:opacity-50",
+        className,
+      )}
+    />
+  );
+}
+
+/**
+ * Destructive actions do not fire on the first click. The button opens into a
+ * panel that spells out what is about to be lost — the caller passes the count,
+ * because "3 answers" is a fact an admin can weigh and "this cannot be undone"
+ * is not — and only the second, differently-labelled button commits.
+ *
+ * Deliberately inline rather than a modal: the thing being deleted stays on
+ * screen beside the warning about deleting it.
+ */
+export function ConfirmDelete({
+  trigger,
+  heading,
+  body,
+  confirmLabel,
+  disabled,
+  onConfirm,
+}: {
+  trigger: string;
+  heading: string;
+  body: ReactNode;
+  confirmLabel: string;
+  disabled: boolean;
+  onConfirm: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  if (!open) {
+    return (
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        className="text-muted-foreground hover:text-destructive"
+        disabled={disabled}
+        onClick={() => setOpen(true)}
+      >
+        {trigger}
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-md border-2 border-destructive/40 bg-destructive/5 p-3">
+      <p className="text-sm font-semibold text-destructive">{heading}</p>
+      <div className="text-sm text-destructive/90">{body}</div>
+
+      <div className="flex flex-wrap gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="destructive"
+          disabled={disabled}
+          onClick={() => {
+            setOpen(false);
+            onConfirm();
+          }}
+        >
+          {confirmLabel}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={disabled}
+          onClick={() => setOpen(false)}
+        >
+          Keep it
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/** The count as a phrase, so call sites are not each rebuilding the plural. */
+export function answerPhrase(count: number): string {
+  return `${count} ${count === 1 ? "answer" : "answers"}`;
 }

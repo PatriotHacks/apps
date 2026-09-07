@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  answers,
   formSections,
   forms,
   questionOptions,
@@ -10,11 +11,13 @@ import {
 } from "@patriothacks/database";
 import {
   BRANCH_ACTIONS,
+  OPTION_KINDS,
   canBranch,
   getQuestionTypeDefinition,
   hasGrid,
   hasOptions,
   isQuestionType,
+  parseAnswerValue,
   parseQuestionConfig,
   validateFormGraph,
   type BranchAction,
@@ -32,19 +35,24 @@ import { isUuid, loadFormDefinition } from "@/lib/form-definition";
 import { moved, renumber } from "@/lib/positions";
 import { isSlug, toOptionValue } from "@/lib/slug";
 
-export type ActionResult = { ok: true } | { ok: false; message: string };
+export type ActionResult =
+  | { ok: true }
+  | { ok: false; message: string; needsAnswerConfirmation?: number };
 
 const OK: ActionResult = { ok: true };
 
 const EDIT_POLICIES = ["locked", "per_question", "full"] as const;
 
 /**
- * The single gate every mutation passes through. A published form is immutable,
- * so the status check lives here rather than in each action — and it runs
- * inside the same transaction as the write, so a form published concurrently
- * cannot be edited through a stale page.
+ * The single gate every mutation passes through.
+ *
+ * Publishing no longer freezes a form, so this no longer refuses one — but the
+ * re-read is still the point. The row is loaded inside the same transaction as
+ * the write, so an action fired from a page left open sees the form as it is
+ * now rather than as it was rendered: a form deleted or published in the
+ * meantime is caught here rather than half-applied.
  */
-async function withDraft<T>(
+async function withForm<T>(
   formId: string,
   run: (tx: DatabaseTransaction, form: Form) => Promise<T>,
 ): Promise<T> {
@@ -58,9 +66,6 @@ async function withDraft<T>(
       .where(and(eq(forms.id, formId), isNull(forms.deletedAt)))
       .limit(1);
     if (!form) throw new Error("Unknown form");
-    if (form.status !== "draft") {
-      throw new Error("This form is published and can no longer be edited");
-    }
 
     const value = await run(tx, form);
     await tx.update(forms).set({ updatedAt: new Date() }).where(eq(forms.id, formId));
@@ -69,6 +74,111 @@ async function withDraft<T>(
 
   revalidatePath(`/forms/${formId}/edit`);
   return result;
+}
+
+/** Thrown to roll a live form's transaction back; never leaves this module. */
+class GraphRejected extends Error {
+  constructor(readonly errors: GraphError[]) {
+    super("graph rejected");
+  }
+}
+
+/**
+ * The gate for anything that changes the shape of the form: sections,
+ * questions, options, branch targets.
+ *
+ * A draft is checked at publish and nowhere else — half-built forms are
+ * unreachable and empty all the time, and refusing those edits would make the
+ * builder unusable. A published form gets the same check on every single save,
+ * because applicants are walking this graph right now: an unreachable section
+ * or a backward jump introduced mid-application is not a problem to discover
+ * later. The validation runs inside the write transaction and throws, so a
+ * change that would break traversal is rolled back rather than reported after
+ * the fact.
+ */
+async function withStructure(
+  formId: string,
+  run: (tx: DatabaseTransaction, form: Form) => Promise<ActionResult>,
+): Promise<ActionResult> {
+  try {
+    return await withForm(formId, async (tx, form) => {
+      const result = await run(tx, form);
+      if (!result.ok || form.status === "draft") return result;
+
+      const loaded = await loadFormDefinition(tx, formId);
+      if (!loaded) throw new Error("Could not load the form");
+
+      const graph = validateFormGraph(loaded.definition);
+      if (!graph.success) throw new GraphRejected(graph.errors);
+      return result;
+    });
+  } catch (error) {
+    if (!(error instanceof GraphRejected)) throw error;
+    return {
+      ok: false,
+      message: `Not saved — applicants are filling this form in right now and this would leave it unusable: ${error.errors
+        .map((graphError) => graphError.message)
+        .join("; ")}`,
+    };
+  }
+}
+
+/**
+ * How many answers stand behind these questions. What a delete confirmation
+ * names, and what it is checked against a moment later.
+ */
+async function countAnswers(tx: DatabaseTransaction, questionIds: string[]): Promise<number> {
+  if (questionIds.length === 0) return 0;
+  return tx.$count(answers, inArray(answers.questionId, questionIds));
+}
+
+/**
+ * Answers go before the questions they answer. `answers.question_id` carries no
+ * cascade, so without this the delete fails on the foreign key — and a cascade
+ * would be worse, because it would make losing a live form's responses a side
+ * effect of a click rather than something an admin had to confirm. The delete
+ * trigger still copies every value into `answer_revisions` on the way out.
+ */
+async function clearAnswers(tx: DatabaseTransaction, questionIds: string[]): Promise<void> {
+  if (questionIds.length === 0) return;
+  await tx.delete(answers).where(inArray(answers.questionId, questionIds));
+}
+
+/**
+ * Which of a question's stored answers would stop being readable under a new
+ * type. `answers.value` is jsonb and the type is the only thing that says how
+ * to read it, so changing the type without this leaves values no schema
+ * describes — the grid the admin sees and the parse the applicant's page runs
+ * would disagree, silently. Types that share a value shape (short answer to
+ * paragraph, dropdown to multiple choice) strand nothing and return zero.
+ */
+async function answersInvalidUnder(
+  tx: DatabaseTransaction,
+  questionId: string,
+  type: QuestionType,
+): Promise<string[]> {
+  const rows = await tx
+    .select({ id: answers.id, value: answers.value })
+    .from(answers)
+    .where(eq(answers.questionId, questionId));
+  return rows.filter((row) => !parseAnswerValue(type, row.value).success).map((row) => row.id);
+}
+
+/**
+ * Refuses a delete whose blast radius grew between the confirmation being shown
+ * and the button being pressed. An applicant answering a question while the
+ * admin reads the warning is exactly the case this catches: the count in front
+ * of them is the count they agreed to, or the delete does not happen.
+ */
+function answerCountChanged(confirmed: number, actual: number): ActionResult | null {
+  if (confirmed === actual) return null;
+  return {
+    ok: false,
+    message:
+      actual > confirmed
+        ? `Not deleted — ${actual - confirmed} more ${actual - confirmed === 1 ? "answer has" : "answers have"} arrived since that warning was shown. It now holds ${actual}. Check again before deleting.`
+        : `Not deleted — this now holds ${actual} ${actual === 1 ? "answer" : "answers"} rather than ${confirmed}. Check again before deleting.`,
+  };
 }
 
 /** Section ids in position order — the list every renumber is derived from. */
@@ -255,7 +365,9 @@ export async function updateMeta(formId: string, input: MetaInput): Promise<Acti
     return { ok: false, message: "The form must open before it closes." };
   }
 
-  return withDraft(formId, async (tx) => {
+  // Not structural: the title, slug, window and edit policy carry no edges, so
+  // no graph can be broken by writing them.
+  return withForm(formId, async (tx) => {
     const [taken] = await tx
       .select({ id: forms.id })
       .from(forms)
@@ -278,14 +390,15 @@ export async function updateMeta(formId: string, input: MetaInput): Promise<Acti
   });
 }
 
-export async function addSection(formId: string): Promise<void> {
-  await withDraft(formId, async (tx) => {
+export async function addSection(formId: string): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
     const ordered = await sectionIds(tx, formId);
     await tx.insert(formSections).values({
       formId,
       title: `Section ${ordered.length + 1}`,
       position: ordered.length,
     });
+    return OK;
   });
 }
 
@@ -293,8 +406,8 @@ export async function updateSection(
   formId: string,
   sectionId: string,
   input: { title: string; description: string },
-): Promise<void> {
-  await withDraft(formId, async (tx) => {
+): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
     await tx
       .update(formSections)
       .set({
@@ -302,6 +415,7 @@ export async function updateSection(
         description: input.description.trim() || null,
       })
       .where(and(eq(formSections.id, sectionId), eq(formSections.formId, formId)));
+    return OK;
   });
 }
 
@@ -311,7 +425,7 @@ export async function setSectionBranch(
   action: string,
   targetId: string | null,
 ): Promise<ActionResult> {
-  return withDraft(formId, async (tx) => {
+  return withStructure(formId, async (tx) => {
     const jump = await resolveJump(tx, formId, sectionId, action, targetId);
     if (!jump.ok) return jump;
 
@@ -327,73 +441,98 @@ export async function moveSection(
   formId: string,
   sectionId: string,
   delta: number,
-): Promise<void> {
-  await withDraft(formId, async (tx) => {
+): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
     const ordered = await sectionIds(tx, formId);
     await renumber(tx, formSections, eq(formSections.formId, formId), moved(ordered, sectionId, delta));
+    return OK;
   });
 }
 
-export async function deleteSection(formId: string, sectionId: string): Promise<void> {
-  await withDraft(formId, async (tx) => {
+/**
+ * Deleting a section takes its questions with it — `questions.section_id`
+ * cascades — so it takes their answers too, and the count named in the
+ * confirmation covers the whole section rather than any one question.
+ */
+export async function deleteSection(
+  formId: string,
+  sectionId: string,
+  confirmedAnswers: number,
+): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
+    const owned = await questionIds(tx, sectionId);
+    const stale = answerCountChanged(confirmedAnswers, await countAnswers(tx, owned));
+    if (stale) return stale;
+
+    await clearAnswers(tx, owned);
     await tx
       .delete(formSections)
       .where(and(eq(formSections.id, sectionId), eq(formSections.formId, formId)));
     await healDanglingJumps(tx, formId);
     await renumber(tx, formSections, eq(formSections.formId, formId), await sectionIds(tx, formId));
+    return OK;
   });
+}
+
+const SEED_LABELS: Record<OptionKind, string[]> = {
+  choice: ["Option 1", "Option 2"],
+  grid_row: ["Row 1", "Row 2"],
+  grid_column: ["Column 1", "Column 2"],
+};
+
+/** The option kinds a type is answered through; empty for text, date and scale. */
+function optionKinds(type: QuestionType): OptionKind[] {
+  if (hasOptions(type)) return ["choice"];
+  if (hasGrid(type)) return ["grid_row", "grid_column"];
+  return [];
 }
 
 /**
  * A choice question with no choices and a grid with no axes cannot be answered,
- * so a new one arrives with the minimum that makes it usable.
+ * so a question arrives — and comes out of a type change — with the minimum
+ * that makes it usable. Kinds that already hold rows are left alone, which is
+ * what lets a dropdown become a multiple choice without losing its options.
  */
-async function seedOptions(
+async function seedMissingOptions(
   tx: DatabaseTransaction,
   questionId: string,
   type: QuestionType,
 ): Promise<void> {
-  const rows = [];
-  if (hasOptions(type)) {
-    rows.push(
-      { kind: "choice" as const, label: "Option 1" },
-      { kind: "choice" as const, label: "Option 2" },
-    );
-  }
-  if (hasGrid(type)) {
-    rows.push(
-      { kind: "grid_row" as const, label: "Row 1" },
-      { kind: "grid_row" as const, label: "Row 2" },
-      { kind: "grid_column" as const, label: "Column 1" },
-      { kind: "grid_column" as const, label: "Column 2" },
-    );
-  }
-  if (rows.length === 0) return;
+  const rows: { questionId: string; kind: OptionKind; label: string; value: string; position: number }[] =
+    [];
 
-  const counters = new Map<OptionKind, number>();
-  await tx.insert(questionOptions).values(
-    rows.map((row) => {
-      const position = counters.get(row.kind) ?? 0;
-      counters.set(row.kind, position + 1);
-      return {
+  for (const kind of optionKinds(type)) {
+    if ((await optionIds(tx, questionId, kind)).length > 0) continue;
+    rows.push(
+      ...SEED_LABELS[kind].map((label, position) => ({
         questionId,
-        kind: row.kind,
-        label: row.label,
-        value: toOptionValue(row.label),
+        kind,
+        label,
+        value: toOptionValue(label),
         position,
-      };
-    }),
-  );
+      })),
+    );
+  }
+
+  if (rows.length > 0) await tx.insert(questionOptions).values(rows);
 }
 
+/**
+ * `afterQuestionId` is what makes the add button belong to a card rather than to
+ * the bottom of the page: a question added from the card you are looking at
+ * lands under it, not somewhere off screen. The row is inserted at the end and
+ * the list renumbered, because positions are unique per section and cannot be
+ * shifted up one at a time without colliding.
+ */
 export async function addQuestion(
   formId: string,
   sectionId: string,
   type: string,
-): Promise<void> {
-  if (!isQuestionType(type)) throw new Error("Unknown question type");
+  afterQuestionId: string | null = null,
+): Promise<ActionResult> {
+  if (!isQuestionType(type)) return { ok: false, message: "Unknown question type." };
 
-  await withDraft(formId, async (tx) => {
+  return withStructure(formId, async (tx) => {
     const [section] = await tx
       .select({ id: formSections.id })
       .from(formSections)
@@ -420,7 +559,93 @@ export async function addQuestion(
       .returning({ id: questions.id });
     if (!created) throw new Error("Could not add the question");
 
-    await seedOptions(tx, created.id, type);
+    await seedMissingOptions(tx, created.id, type);
+
+    const at = afterQuestionId === null ? -1 : ordered.indexOf(afterQuestionId);
+    if (at !== -1) {
+      const reordered = [...ordered];
+      reordered.splice(at + 1, 0, created.id);
+      await renumber(tx, questions, eq(questions.sectionId, sectionId), reordered);
+    }
+
+    return OK;
+  });
+}
+
+/**
+ * Switching a question's type keeps everything the new type can still hold.
+ *
+ * The label, help text and answering rules never depend on the type, so they
+ * survive untouched. The config survives when the new type's schema accepts it
+ * — short answer to paragraph keeps its length limits — and falls back to that
+ * type's defaults when it does not, rather than refusing the change and leaving
+ * the builder with a card it cannot fix.
+ *
+ * Options are the part that cannot always carry: a choice list means nothing on
+ * a grid and a grid axis means nothing on a text question. Those rows go, the
+ * kinds the new type needs are seeded, and a kind both types share is kept
+ * exactly as it was.
+ */
+export async function changeQuestionType(
+  formId: string,
+  questionId: string,
+  type: string,
+  confirmedAnswers = 0,
+): Promise<ActionResult> {
+  if (!isQuestionType(type)) return { ok: false, message: "Unknown question type." };
+
+  return withStructure(formId, async (tx) => {
+    const question = await questionOf(tx, formId, questionId);
+    if (question.type === type) return OK;
+
+    // Answers that the new type cannot read have to go, for the same reason a
+    // deleted question's answers do: nothing else can interpret them again.
+    // Confirmed against a fresh count so a race is refused, not absorbed.
+    const stranded = await answersInvalidUnder(tx, questionId, type);
+    if (stranded.length > 0 && confirmedAnswers !== stranded.length) {
+      const n = stranded.length;
+      return {
+        ok: false,
+        needsAnswerConfirmation: n,
+        message: `${n} ${n === 1 ? "answer" : "answers"} to this question cannot be read as ${type.replace(/_/g, " ")} and will be deleted. Confirm to continue.`,
+      };
+    }
+    if (stranded.length > 0) {
+      await tx.delete(answers).where(inArray(answers.id, stranded));
+    }
+
+    const carried = buildConfig(type, question.config ?? {});
+    const built = carried.ok ? carried : buildConfig(type, {});
+    if (!built.ok) return built;
+
+    await tx
+      .update(questions)
+      .set({ type, config: built.config, updatedAt: new Date() })
+      .where(eq(questions.id, question.id));
+
+    const keep = optionKinds(type);
+    const drop = OPTION_KINDS.filter((kind) => !keep.includes(kind));
+    if (drop.length > 0) {
+      await tx
+        .delete(questionOptions)
+        .where(
+          and(eq(questionOptions.questionId, question.id), inArray(questionOptions.kind, drop)),
+        );
+    }
+
+    await seedMissingOptions(tx, question.id, type);
+
+    // Traversal ignores an option branch on a type that cannot branch, so a
+    // kept jump would be invisible until the type changed back and it
+    // reappeared pointing at a section that has since moved.
+    if (!canBranch(type)) {
+      await tx
+        .update(questionOptions)
+        .set({ nextAction: "next", nextSectionId: null })
+        .where(eq(questionOptions.questionId, question.id));
+    }
+
+    return OK;
   });
 }
 
@@ -437,7 +662,7 @@ export async function updateQuestion(
   const label = input.label.trim();
   if (label.length === 0) return { ok: false, message: "A question needs a label." };
 
-  return withDraft(formId, async (tx) => {
+  return withStructure(formId, async (tx) => {
     await tx
       .update(questions)
       .set({
@@ -457,7 +682,7 @@ export async function updateQuestionConfig(
   questionId: string,
   raw: Record<string, unknown>,
 ): Promise<ActionResult> {
-  return withDraft(formId, async (tx) => {
+  return withStructure(formId, async (tx) => {
     const question = await questionOf(tx, formId, questionId);
     const built = buildConfig(question.type, raw);
     if (!built.ok) return built;
@@ -474,8 +699,8 @@ export async function moveQuestion(
   formId: string,
   questionId: string,
   delta: number,
-): Promise<void> {
-  await withDraft(formId, async (tx) => {
+): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
     const question = await questionOf(tx, formId, questionId);
     const ordered = await questionIds(tx, question.sectionId);
     await renumber(
@@ -484,12 +709,26 @@ export async function moveQuestion(
       eq(questions.sectionId, question.sectionId),
       moved(ordered, questionId, delta),
     );
+    return OK;
   });
 }
 
-export async function deleteQuestion(formId: string, questionId: string): Promise<void> {
-  await withDraft(formId, async (tx) => {
+/**
+ * The most destructive thing the console can do to a live form: every answer to
+ * this question is deleted with it, and no re-adding brings them back. The count
+ * the admin confirmed is re-checked here rather than trusted.
+ */
+export async function deleteQuestion(
+  formId: string,
+  questionId: string,
+  confirmedAnswers: number,
+): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
     const question = await questionOf(tx, formId, questionId);
+    const stale = answerCountChanged(confirmedAnswers, await countAnswers(tx, [questionId]));
+    if (stale) return stale;
+
+    await clearAnswers(tx, [questionId]);
     await tx.delete(questions).where(eq(questions.id, questionId));
     await renumber(
       tx,
@@ -497,6 +736,7 @@ export async function deleteQuestion(formId: string, questionId: string): Promis
       eq(questions.sectionId, question.sectionId),
       await questionIds(tx, question.sectionId),
     );
+    return OK;
   });
 }
 
@@ -532,8 +772,8 @@ export async function addOption(
   formId: string,
   questionId: string,
   kind: OptionKind,
-): Promise<void> {
-  await withDraft(formId, async (tx) => {
+): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
     await questionOf(tx, formId, questionId);
     const ordered = await optionIds(tx, questionId, kind);
     const label = `${OPTION_LABELS[kind]} ${ordered.length + 1}`;
@@ -544,6 +784,7 @@ export async function addOption(
       value: uniqueValue(label, await siblingValues(tx, questionId, kind, null)),
       position: ordered.length,
     });
+    return OK;
   });
 }
 
@@ -555,7 +796,7 @@ export async function updateOption(
   const trimmed = label.trim();
   if (trimmed.length === 0) return { ok: false, message: "An option needs a label." };
 
-  return withDraft(formId, async (tx) => {
+  return withStructure(formId, async (tx) => {
     const { option } = await optionOf(tx, formId, optionId);
     const taken = await siblingValues(tx, option.questionId, option.kind, option.id);
     await tx
@@ -572,7 +813,7 @@ export async function setOptionBranch(
   action: string,
   targetId: string | null,
 ): Promise<ActionResult> {
-  return withDraft(formId, async (tx) => {
+  return withStructure(formId, async (tx) => {
     const { option, question } = await optionOf(tx, formId, optionId);
     if (option.kind !== "choice" || !canBranch(question.type)) {
       return { ok: false, message: "This question type cannot branch." };
@@ -593,8 +834,8 @@ export async function moveOption(
   formId: string,
   optionId: string,
   delta: number,
-): Promise<void> {
-  await withDraft(formId, async (tx) => {
+): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
     const { option } = await optionOf(tx, formId, optionId);
     const ordered = await optionIds(tx, option.questionId, option.kind);
     await renumber(
@@ -606,11 +847,12 @@ export async function moveOption(
       )!,
       moved(ordered, optionId, delta),
     );
+    return OK;
   });
 }
 
-export async function deleteOption(formId: string, optionId: string): Promise<void> {
-  await withDraft(formId, async (tx) => {
+export async function deleteOption(formId: string, optionId: string): Promise<ActionResult> {
+  return withStructure(formId, async (tx) => {
     const { option } = await optionOf(tx, formId, optionId);
     await tx.delete(questionOptions).where(eq(questionOptions.id, optionId));
     await renumber(
@@ -622,6 +864,7 @@ export async function deleteOption(formId: string, optionId: string): Promise<vo
       )!,
       await optionIds(tx, option.questionId, option.kind),
     );
+    return OK;
   });
 }
 
@@ -631,15 +874,19 @@ export interface PublishFailure {
 }
 
 /**
- * Irreversible. A published form's structure can never be changed again, so a
- * graph that cannot be traversed can never be repaired either — this validation
- * is the last chance to catch one.
+ * Opens the form to applicants. The structure stays editable afterwards, but
+ * this is the moment the graph stops being a draft nobody has walked, so it is
+ * validated in full before anyone can start: from here on every structural save
+ * is held to the same standard by `withStructure`.
  */
 export async function publishForm(
   formId: string,
   confirmation: string,
 ): Promise<PublishFailure> {
-  const failure = await withDraft(formId, async (tx, form) => {
+  const failure = await withForm(formId, async (tx, form) => {
+    if (form.status !== "draft") {
+      return { message: "This form has already been published.", errors: [] };
+    }
     if (confirmation.trim() !== form.slug) {
       return { message: `Type "${form.slug}" to confirm.`, errors: [] };
     }
