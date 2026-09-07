@@ -133,6 +133,7 @@ export function LoginForm({
                 id="email"
                 type="email"
                 autoComplete="email"
+                className="h-12 rounded-xl px-4"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -146,6 +147,7 @@ export function LoginForm({
                   id="password"
                   type="password"
                   autoComplete="current-password"
+                  className="h-12 rounded-xl px-4"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
