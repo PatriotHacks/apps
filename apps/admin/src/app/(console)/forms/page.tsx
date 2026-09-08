@@ -79,19 +79,7 @@ export default async function FormsPage() {
                 <Link href={`/forms/${row.id}`} className="font-medium hover:underline">
                   {row.title}
                 </Link>
-                {/* Editing is no longer draft-only: a published form stays
-                    editable, with the builder warning about what that costs. */}
-                <p className="text-xs text-muted-foreground">
-                  /{row.slug}
-                  {isAdmin ? (
-                    <>
-                      {" · "}
-                      <Link href={`/forms/${row.id}/edit`} className="hover:underline">
-                        Edit
-                      </Link>
-                    </>
-                  ) : null}
-                </p>
+                <p className="text-xs text-muted-foreground">/{row.slug}</p>
               </TableCell>
               <TableCell>
                 <StatusBadge status={row.status} />
@@ -109,11 +97,18 @@ export default async function FormsPage() {
               </TableCell>
               {isAdmin ? (
                 <TableCell>
-                  <DeleteForm
-                    formId={row.id}
-                    title={row.title}
-                    submissionCount={row.submissionCount}
-                  />
+                  {/* Published forms edit too — the builder warns about what
+                      that costs rather than the console refusing outright. */}
+                  <div className="flex items-center justify-end gap-1">
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/forms/${row.id}/edit`}>Edit</Link>
+                    </Button>
+                    <DeleteForm
+                      formId={row.id}
+                      title={row.title}
+                      submissionCount={row.submissionCount}
+                    />
+                  </div>
                 </TableCell>
               ) : null}
             </TableRow>

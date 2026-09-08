@@ -26,3 +26,8 @@ supabase/.branches/
 *.tsbuildinfo
 
 .claude/worktrees/
+
+# throwaway db probe scripts
+packages/database/*.mjs
+!packages/database/eslint.config.mjs
+!packages/database/drizzle.config.ts
