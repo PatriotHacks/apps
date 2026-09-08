@@ -6,6 +6,7 @@ import Link from "next/link";
 import { requireClaims } from "@/lib/auth";
 import { withRls } from "@/lib/db";
 import { SUBMISSION_STATUS_LABELS, formatDate } from "@/lib/editability";
+import { SiteHeader } from "@/components/site-header";
 
 export default async function SubmissionsPage() {
   const claims = await requireClaims();
@@ -28,7 +29,7 @@ export default async function SubmissionsPage() {
   );
 
   return (
-    <AppShell>
+    <AppShell header={<SiteHeader />}>
       <div className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
         <div className="flex flex-col gap-2">
           <Link href="/" className="text-sm text-muted-foreground underline underline-offset-4">
