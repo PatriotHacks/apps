@@ -51,7 +51,7 @@ export default async function Home() {
 
   return (
     <AppShell header={<SiteHeader />}>
-      <div className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-8">
         <div className="flex items-center justify-between gap-4">
           {claims ? (
             <>
