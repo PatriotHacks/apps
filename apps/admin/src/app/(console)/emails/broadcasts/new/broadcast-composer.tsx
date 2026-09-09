@@ -18,6 +18,7 @@ import {
 
 import {
   createBroadcast,
+  loadNewsletterBody,
   previewAudience,
   previewBroadcast,
   type BroadcastDraft,
@@ -31,9 +32,11 @@ const toggle = <T,>(list: T[], value: T): T[] =>
 
 export function BroadcastComposer({
   forms,
+  newsletters,
   variables,
 }: {
   forms: { id: string; title: string }[];
+  newsletters: { id: string; name: string }[];
   /** Passed from the server so the emails package — and the `pg` driver behind
       it — never reaches the browser bundle. */
   variables: readonly string[];
@@ -44,7 +47,8 @@ export function BroadcastComposer({
   const [count, setCount] = useState<AudienceCount | null>(null);
   const [counting, startCounting] = useTransition();
   const [preview, setPreview] = useState<PreviewResult | null>(null);
-  const [busy, setBusy] = useState<"preview" | "save" | null>(null);
+  const [newsletterId, setNewsletterId] = useState("");
+  const [busy, setBusy] = useState<"preview" | "save" | "newsletter" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Recounted whenever the filter moves, so the number on screen is always the
@@ -67,6 +71,29 @@ export function BroadcastComposer({
       setError(null);
     },
   });
+
+  /**
+   * Compiled on the server and copied in, so the broadcast owns its body from
+   * here on. Overwriting is confirmed rather than prevented — loading a
+   * newsletter over a half-written body is a normal thing to want, and losing it
+   * silently is not.
+   */
+  async function onLoadNewsletter() {
+    const written = draft.bodyHtml.trim().length > 0 || draft.bodyText.trim().length > 0;
+    if (written && !window.confirm("Replace the HTML and text bodies with this newsletter?")) return;
+
+    setBusy("newsletter");
+    const result = await loadNewsletterBody(newsletterId);
+    setBusy(null);
+
+    if (result.status === "invalid") {
+      setError(result.message);
+      return;
+    }
+
+    setDraft((current) => ({ ...current, bodyHtml: result.bodyHtml, bodyText: result.bodyText }));
+    setError(null);
+  }
 
   async function onPreview() {
     setBusy("preview");
@@ -109,6 +136,38 @@ export function BroadcastComposer({
           <Label htmlFor="subject">Subject</Label>
           <Input id="subject" {...field("subject")} />
         </div>
+
+        {newsletters.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="newsletterId">Newsletter</Label>
+            <div className="flex flex-wrap gap-2">
+              <select
+                id="newsletterId"
+                className="h-9 min-w-52 flex-1 rounded-md border border-input bg-transparent px-3 text-sm"
+                value={newsletterId}
+                onChange={(event) => setNewsletterId(event.target.value)}
+              >
+                <option value="">Write the body by hand</option>
+                {newsletters.map((newsletter) => (
+                  <option key={newsletter.id} value={newsletter.id}>
+                    {newsletter.name}
+                  </option>
+                ))}
+              </select>
+              <Button
+                variant="outline"
+                onClick={onLoadNewsletter}
+                disabled={busy !== null || newsletterId === ""}
+              >
+                {busy === "newsletter" ? "Loading…" : "Load"}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Fills both bodies with the compiled newsletter. Edit them here afterwards if you like
+              — the newsletter itself is untouched.
+            </p>
+          </div>
+        ) : null}
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="bodyHtml">HTML body</Label>

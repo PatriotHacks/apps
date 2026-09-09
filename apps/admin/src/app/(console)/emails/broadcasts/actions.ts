@@ -3,6 +3,7 @@
 import { broadcasts } from "@patriothacks/database";
 import {
   BROADCAST_KEY,
+  compileNewsletter,
   renderTemplate,
   resendProviderFromEnv,
   unknownVariables,
@@ -20,6 +21,7 @@ import {
 import { sendBroadcastChunk, type BroadcastProgress } from "@/lib/broadcast-send";
 import { countAudience, selectRecipients } from "@/lib/broadcast-sql";
 import { queryAsAdmin } from "@/lib/db";
+import { getNewsletter } from "@/lib/newsletters";
 import { unsubscribeUrlFor } from "@/lib/unsubscribe";
 
 export type BroadcastDraft = {
@@ -36,6 +38,10 @@ export type CreateBroadcastResult =
 export type PreviewResult =
   | { status: "ok"; to: string; subject: string; html: string; text: string }
   | { status: "empty" }
+  | { status: "invalid"; message: string };
+
+export type NewsletterBodyResult =
+  | { status: "ok"; bodyHtml: string; bodyText: string }
   | { status: "invalid"; message: string };
 
 export type SendProgressResult =
@@ -62,6 +68,29 @@ function validate(draft: BroadcastDraft): string | null {
     .join(", ")}. A broadcast only has ${variablesFor(BROADCAST_KEY)
     .map((name) => `{{${name}}}`)
     .join(", ")}.`;
+}
+
+/**
+ * The compiled body of a saved newsletter, for the composer's picker.
+ *
+ * Compiled here rather than in the browser: the block compiler lives in
+ * `@patriothacks/emails`, and the `pg` driver behind that package must stay out
+ * of the client bundle. The composer receives finished strings, and the broadcast
+ * keeps its own copy of them — editing the newsletter afterwards changes nothing
+ * that has already been written here.
+ */
+export async function loadNewsletterBody(id: string): Promise<NewsletterBodyResult> {
+  await requireAdmin();
+
+  const newsletter = await getNewsletter(id);
+  if (!newsletter) return { status: "invalid", message: "That newsletter no longer exists." };
+
+  const { html, text } = compileNewsletter(newsletter.blocks);
+  if (!html.trim() || !text.trim()) {
+    return { status: "invalid", message: "That newsletter has no blocks to load." };
+  }
+
+  return { status: "ok", bodyHtml: html, bodyText: text };
 }
 
 /** Live count for the builder, including the number the unsubscribe list removes. */

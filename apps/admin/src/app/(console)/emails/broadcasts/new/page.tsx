@@ -3,12 +3,13 @@ import Link from "next/link";
 
 import { requireAdmin } from "@/lib/auth";
 import { listFormChoices } from "@/lib/broadcasts";
+import { listNewsletterChoices } from "@/lib/newsletters";
 
 import { BroadcastComposer } from "./broadcast-composer";
 
 export default async function NewBroadcastPage() {
   await requireAdmin();
-  const forms = await listFormChoices();
+  const [forms, newsletters] = await Promise.all([listFormChoices(), listNewsletterChoices()]);
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -22,7 +23,7 @@ export default async function NewBroadcastPage() {
         </p>
       </div>
 
-      <BroadcastComposer forms={forms} variables={BROADCAST_VARIABLES} />
+      <BroadcastComposer forms={forms} newsletters={newsletters} variables={BROADCAST_VARIABLES} />
     </div>
   );
 }

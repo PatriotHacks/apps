@@ -419,6 +419,9 @@ Behavior:
 /submissions/[formId]/[submissionId]   detail view
 /emails/templates            template editor
 /emails/broadcasts           audience builder and send
+/newsletters                 saved newsletter designs
+/newsletters/new             block builder
+/newsletters/[id]            block builder
 /settings/admins             role management (admin only)
 ```
 
@@ -478,6 +481,17 @@ CPU limits make a synchronous 2000-send loop a non-starter.
 
 Templates are stored in the database with `{{variable}}` interpolation and edited in the console.
 The layout shell lives in `packages/emails`; organizers own the words, not the rendering.
+
+**Newsletters** — a newsletter is a design, not a send. Organizers assemble a recurring issue from
+typed blocks (heading, paragraph, image, button, divider) in `/newsletters`, preview it, and save it
+to the `newsletters` table as jsonb. A broadcast then loads one, which compiles the blocks into its
+own `body_html` and `body_text` and copies them onto the broadcast row — so audience selection and
+sending stay entirely with broadcasts, and editing or deleting a design never changes anything
+already queued or sent. The compiler lives in `packages/emails` beside the layout shell: it emits
+body-level, table-based, inline-styled markup only, escapes every authored string while leaving
+`{{variable}}` intact for interpolation at send time, and validates every URL as `http:` or `https:`
+in the schema. Inline links are written as `[label](url)` and entered as form fields, so no organizer
+ever hand-writes an anchor.
 
 Sending requires SPF, DKIM, and DMARC records on `patriothacks.org` — which is a point in favor of
 the domain already being on Cloudflare.
