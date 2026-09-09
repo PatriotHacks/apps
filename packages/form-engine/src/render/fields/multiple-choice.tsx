@@ -33,7 +33,7 @@ export function MultipleChoiceField({
         {choiceOptions(question).map((option) => {
           const optionId = `${controlId}-${option.id}`;
           return (
-            <div key={option.id} className="flex items-center gap-2">
+            <div key={option.id} className="flex items-start gap-3">
               <RadioGroupItem id={optionId} value={option.value} />
               <Label htmlFor={optionId} className="font-normal">
                 {option.label}

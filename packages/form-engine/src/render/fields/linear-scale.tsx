@@ -31,12 +31,9 @@ export function LinearScaleField({
 
   return (
     <FieldShell question={question} error={error}>
-      <div className="flex flex-wrap items-end gap-4">
-        {minLabel ? (
-          <span className="text-sm text-muted-foreground">{minLabel}</span>
-        ) : null}
+      <div className="flex flex-col gap-2">
         <RadioGroup
-          className="flex flex-wrap gap-4"
+          className="flex justify-between gap-1 sm:justify-start sm:gap-4"
           value={value === null ? "" : String(value)}
           disabled={disabled}
           aria-labelledby={fieldLabelId(question.id)}
@@ -57,8 +54,11 @@ export function LinearScaleField({
             );
           })}
         </RadioGroup>
-        {maxLabel ? (
-          <span className="text-sm text-muted-foreground">{maxLabel}</span>
+        {minLabel || maxLabel ? (
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>{minLabel}</span>
+            <span>{maxLabel}</span>
+          </div>
         ) : null}
       </div>
     </FieldShell>

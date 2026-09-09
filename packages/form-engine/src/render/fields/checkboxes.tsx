@@ -39,14 +39,14 @@ export function CheckboxesField({
     <FieldShell question={question} error={error}>
       <div
         role="group"
-        className="flex flex-col gap-3"
+        className="flex flex-col gap-4"
         aria-labelledby={fieldLabelId(question.id)}
         aria-describedby={fieldDescribedBy(question, error)}
       >
         {options.map((option) => {
           const optionId = `${controlId}-${option.id}`;
           return (
-            <div key={option.id} className="flex items-center gap-2">
+            <div key={option.id} className="flex items-start gap-3">
               <Checkbox
                 id={optionId}
                 checked={selected.includes(option.value)}
