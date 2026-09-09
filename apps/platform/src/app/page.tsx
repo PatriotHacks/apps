@@ -7,6 +7,8 @@ import { optionalClaims } from "@/lib/auth";
 import { withRls } from "@/lib/db";
 import { SUBMISSION_STATUS_LABELS } from "@/lib/editability";
 
+import { SiteHeader } from "@/components/site-header";
+
 import { signOut } from "./actions";
 
 /** Enough of a session to read the list as `anon` when nobody is signed in. */
@@ -48,8 +50,8 @@ export default async function Home() {
       );
 
   return (
-    <AppShell>
-      <div className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
+    <AppShell header={<SiteHeader />}>
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-8">
         <div className="flex items-center justify-between gap-4">
           {claims ? (
             <>

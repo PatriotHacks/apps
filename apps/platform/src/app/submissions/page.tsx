@@ -1,21 +1,23 @@
 import { forms, submissions } from "@patriothacks/database";
 import { AppShell } from "@patriothacks/ui";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
 
 import { requireClaims } from "@/lib/auth";
 import { withRls } from "@/lib/db";
 import { SUBMISSION_STATUS_LABELS, formatDate } from "@/lib/editability";
+import { SiteHeader } from "@/components/site-header";
 
 export default async function SubmissionsPage() {
   const claims = await requireClaims();
 
   // `submissions_select_own` scopes this to the caller; the join to forms is
   // what turns a row into something worth reading.
-  const rows = await withRls(claims, (tx) =>
+  const all = await withRls(claims, (tx) =>
     tx
       .select({
         id: submissions.id,
+        formId: submissions.formId,
         status: submissions.status,
         submittedAt: submissions.submittedAt,
         updatedAt: submissions.updatedAt,
@@ -23,13 +25,20 @@ export default async function SubmissionsPage() {
         title: forms.title,
       })
       .from(submissions)
-      .innerJoin(forms, eq(forms.id, submissions.formId))
+      .innerJoin(forms, and(eq(forms.id, submissions.formId), isNull(forms.deletedAt)))
       .orderBy(desc(submissions.updatedAt)),
   );
 
+  // One row per form — whatever is current. `unique (form_id, user_id)` should
+  // already guarantee that, so this is a belt-and-braces pass rather than the
+  // thing doing the work: ordered newest first, the first row for a form is the
+  // one to keep and any later duplicate is stale.
+  const seen = new Set<string>();
+  const rows = all.filter((row) => !seen.has(row.formId) && seen.add(row.formId));
+
   return (
-    <AppShell>
-      <div className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
+    <AppShell header={<SiteHeader />}>
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-8">
         <div className="flex flex-col gap-2">
           <Link href="/" className="text-sm text-muted-foreground underline underline-offset-4">
             All forms

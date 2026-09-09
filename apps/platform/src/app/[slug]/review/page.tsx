@@ -10,6 +10,7 @@ import { loadForm, loadSubmission } from "@/lib/form-data";
 import { ReadOnlyAnswers } from "../read-only-answers";
 
 import { RsvpPanel } from "./rsvp-panel";
+import { SiteHeader } from "@/components/site-header";
 
 export default async function ReviewPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -28,7 +29,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ slug: s
   if (existing === null || existing.submission.status === "draft") redirect(`/${slug}`);
 
   return (
-    <AppShell>
+    <AppShell header={<SiteHeader />}>
       <div className="mx-auto flex max-w-2xl flex-col gap-8 p-8">
         <div className="flex flex-col gap-2">
           <Link href="/submissions" className="text-sm text-muted-foreground underline underline-offset-4">

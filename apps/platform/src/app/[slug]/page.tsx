@@ -9,6 +9,7 @@ import { loadForm, loadSubmission } from "@/lib/form-data";
 
 import { FillForm } from "./fill-form";
 import { ReadOnlyAnswers } from "./read-only-answers";
+import { SiteHeader } from "@/components/site-header";
 
 /** `[slug]` resolves against `forms.slug`, so `/hacker` is data, not a route. */
 export default async function FillPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -27,7 +28,7 @@ export default async function FillPage({ params }: { params: Promise<{ slug: str
   const explanation = windowExplanation(form, state);
 
   return (
-    <AppShell>
+    <AppShell header={<SiteHeader />}>
       <div className="mx-auto flex max-w-2xl flex-col gap-8 p-8">
         <div className="flex flex-col gap-2">
           <Link href="/" className="text-sm text-muted-foreground underline underline-offset-4">
