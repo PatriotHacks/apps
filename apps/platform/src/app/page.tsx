@@ -51,11 +51,11 @@ export default async function Home() {
 
   return (
     <AppShell header={<SiteHeader />}>
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-8">
-        <div className="flex items-center justify-between gap-4">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:p-8">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
           {claims ? (
             <>
-              <p className="text-sm">{claims.email}</p>
+              <p className="min-w-0 max-w-full truncate text-sm">{claims.email}</p>
               <div className="flex items-center gap-2">
                 <Button asChild variant="ghost" size="sm">
                   <Link href="/submissions">Your submissions</Link>
@@ -104,7 +104,7 @@ export default async function Home() {
                     middleware would redirect anyway; saying so up front is honest. */}
                 <Link
                   href={claims ? `/${row.slug}` : `/login?next=${encodeURIComponent(`/${row.slug}`)}`}
-                  className="text-sm underline underline-offset-4"
+                  className="shrink-0 whitespace-nowrap text-sm underline underline-offset-4"
                 >
                   {!claims
                     ? "Sign in to apply"

@@ -61,7 +61,7 @@ export function DesignFile({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm text-muted-foreground">
+      <span className="text-sm break-all text-muted-foreground">
         {fileName}
         {sizeBytes === null ? null : ` · ${formatFileSize(sizeBytes)}`}
       </span>

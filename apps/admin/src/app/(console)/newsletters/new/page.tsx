@@ -10,7 +10,7 @@ export default async function NewNewsletterPage() {
   await requireAdmin();
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div>
         <Link href="/newsletters" className="text-sm text-muted-foreground hover:underline">
           ← Newsletters

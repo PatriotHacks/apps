@@ -12,8 +12,8 @@ export default async function BroadcastsPage() {
   const rows = await listBroadcasts();
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-start justify-between gap-4">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div>
           <h1 className="text-xl font-semibold">Broadcasts</h1>
           <p className="text-sm text-muted-foreground">
@@ -21,7 +21,7 @@ export default async function BroadcastsPage() {
             unsubscribe list.
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/emails/broadcasts/new">New broadcast</Link>
         </Button>
       </div>
@@ -61,7 +61,9 @@ export default async function BroadcastsPage() {
                     </Badge>
                   ) : null}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{formatDateTime(row.sentAt)}</TableCell>
+                <TableCell className="text-muted-foreground whitespace-nowrap">
+                  {formatDateTime(row.sentAt)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -36,7 +36,7 @@ export default async function DesignsPage() {
   const thumbnails = await thumbnailUrls(rows);
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div>
         <h1 className="text-xl font-semibold">Designs</h1>
         <p className="text-sm text-muted-foreground">
@@ -55,9 +55,11 @@ export default async function DesignsPage() {
             const uploader = row.uploadedByName ?? row.uploadedByEmail;
 
             return (
+              // The text column keeps a readable width rather than shrinking to
+              // nothing, so on a phone it is the delete control that wraps below.
               <li
                 key={row.id}
-                className="flex items-start gap-4 rounded-md border border-border p-4"
+                className="flex flex-wrap items-start gap-4 rounded-md border border-border p-4"
               >
                 {thumbnail ? (
                   // A signed URL expires in a minute, so the optimizer would
@@ -71,11 +73,11 @@ export default async function DesignsPage() {
                   />
                 ) : null}
 
-                <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  <p className="font-medium">{row.title}</p>
+                <div className="flex min-w-40 flex-1 flex-col gap-1">
+                  <p className="font-medium break-words">{row.title}</p>
 
                   {row.description ? (
-                    <p className="text-sm text-muted-foreground">{row.description}</p>
+                    <p className="text-sm break-words text-muted-foreground">{row.description}</p>
                   ) : null}
 
                   {row.linkUrl ? (

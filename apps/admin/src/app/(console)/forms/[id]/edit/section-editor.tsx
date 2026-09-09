@@ -6,7 +6,7 @@ import {
   type FormSection,
   type GraphError,
 } from "@patriothacks/form-engine";
-import { Button, Textarea, cn } from "@patriothacks/ui";
+import { Button, Select, Textarea, cn } from "@patriothacks/ui";
 import { useState } from "react";
 
 import { sectionLabel } from "@/lib/format";
@@ -16,7 +16,6 @@ import {
   BranchSelect,
   ConfirmDelete,
   InlineInput,
-  SELECT_CLASS,
   answerPhrase,
   useAction,
   useSynced,
@@ -31,9 +30,9 @@ function AddQuestion({ formId, sectionId }: { formId: string; sectionId: string 
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <select
+      <Select
         aria-label="Type of question to add"
-        className={cn(SELECT_CLASS, "w-56")}
+        className="w-56"
         value={type}
         disabled={pending}
         onChange={(event) => setType(event.target.value)}
@@ -43,7 +42,7 @@ function AddQuestion({ formId, sectionId }: { formId: string; sectionId: string 
             {QUESTION_TYPE_REGISTRY[value].label}
           </option>
         ))}
-      </select>
+      </Select>
 
       <Button
         type="button"

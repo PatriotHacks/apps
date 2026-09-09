@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, Input, Label, Textarea } from "@patriothacks/ui";
+import { Button, Checkbox, Input, Label, Select, Textarea } from "@patriothacks/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
@@ -141,9 +141,9 @@ export function BroadcastComposer({
           <div className="flex flex-col gap-2">
             <Label htmlFor="newsletterId">Newsletter</Label>
             <div className="flex flex-wrap gap-2">
-              <select
+              <Select
                 id="newsletterId"
-                className="h-9 min-w-52 flex-1 rounded-md border border-input bg-transparent px-3 text-sm"
+                className="min-w-52 flex-1"
                 value={newsletterId}
                 onChange={(event) => setNewsletterId(event.target.value)}
               >
@@ -153,7 +153,7 @@ export function BroadcastComposer({
                     {newsletter.name}
                   </option>
                 ))}
-              </select>
+              </Select>
               <Button
                 variant="outline"
                 onClick={onLoadNewsletter}
@@ -171,12 +171,12 @@ export function BroadcastComposer({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="bodyHtml">HTML body</Label>
-          <Textarea id="bodyHtml" rows={8} className="font-mono text-xs" {...field("bodyHtml")} />
+          <Textarea id="bodyHtml" rows={8} className="font-mono text-base md:text-xs" {...field("bodyHtml")} />
         </div>
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="bodyText">Text body</Label>
-          <Textarea id="bodyText" rows={6} className="font-mono text-xs" {...field("bodyText")} />
+          <Textarea id="bodyText" rows={6} className="font-mono text-base md:text-xs" {...field("bodyText")} />
         </div>
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
@@ -193,7 +193,7 @@ export function BroadcastComposer({
         {preview ? <Preview result={preview} /> : null}
       </div>
 
-      <aside className="flex w-full max-w-sm flex-col gap-5">
+      <aside className="order-first flex w-full max-w-sm flex-col gap-5 lg:order-none">
         <div>
           <h2 className="text-sm font-semibold">Audience</h2>
           <p className="text-xs text-muted-foreground">
@@ -203,9 +203,8 @@ export function BroadcastComposer({
 
         <div className="flex flex-col gap-2">
           <Label htmlFor="formId">Form</Label>
-          <select
+          <Select
             id="formId"
-            className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
             value={filter.formId ?? ""}
             onChange={(event) =>
               setFilter((current) => ({ ...current, formId: event.target.value || null }))
@@ -217,7 +216,7 @@ export function BroadcastComposer({
                 {form.title}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         <fieldset className="flex flex-col gap-2">

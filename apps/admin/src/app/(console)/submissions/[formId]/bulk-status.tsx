@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@patriothacks/ui";
+import { Button, Select } from "@patriothacks/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -52,17 +52,17 @@ export function BulkStatus({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed p-3">
+    <div className="flex flex-col gap-2 rounded-lg border border-dashed p-3 sm:flex-row sm:flex-wrap sm:items-center">
       <span className="text-sm font-medium">Bulk status</span>
 
-      <select
+      <Select
         value={target}
         onChange={(event) => {
           setTarget(event.target.value as SettableStatus);
           setArmed(false);
           setNotice(null);
         }}
-        className="h-9 rounded-md border bg-background px-2 text-sm"
+        className="sm:w-auto"
         aria-label="Status to apply"
       >
         {SETTABLE_STATUSES.map((status) => (
@@ -70,11 +70,17 @@ export function BulkStatus({
             {submissionStatusLabel(status)}
           </option>
         ))}
-      </select>
+      </Select>
 
       {armed ? (
         <>
-          <Button size="sm" variant="destructive" disabled={busy} onClick={onApply}>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="h-auto w-full py-2 text-left whitespace-normal sm:w-auto sm:text-center"
+            disabled={busy}
+            onClick={onApply}
+          >
             {busy
               ? "Applying…"
               : `Confirm: ${submissionStatusLabel(target)} for ${total} matching`}

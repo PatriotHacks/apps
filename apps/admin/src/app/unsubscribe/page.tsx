@@ -12,7 +12,7 @@ export default async function UnsubscribePage({
   const lookup = token ? await lookupUnsubscribe(token) : ({ status: "invalid" } as const);
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-4 p-8">
+    <main className="mx-auto flex min-h-svh max-w-lg flex-col justify-center gap-4 p-8">
       <h1 className="text-xl font-semibold">Announcement emails</h1>
 
       {lookup.status === "invalid" ? (

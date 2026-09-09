@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input, Label, Textarea } from "@patriothacks/ui";
+import { Button, Input, Label, Select, Textarea } from "@patriothacks/ui";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition, type ReactNode } from "react";
 
@@ -20,8 +20,6 @@ import { BLOCK_LABELS, BLOCK_TYPES, blankBlock } from "./blocks";
 type Block<T extends NewsletterBlockType> = Extract<NewsletterBlock, { type: T }>;
 
 type Notice = { tone: "ok" | "bad"; message: string };
-
-const SELECT_CLASS = "h-9 rounded-md border border-input bg-transparent px-3 text-sm";
 
 /** Long enough that a paragraph settles before a request goes out. */
 const PREVIEW_DELAY_MS = 400;
@@ -387,9 +385,8 @@ function HeadingFields({
       </Field>
 
       <Field id={`block-${index}-level`} label="Level">
-        <select
+        <Select
           id={`block-${index}-level`}
-          className={SELECT_CLASS}
           value={block.level}
           onChange={(event) =>
             onChange({ ...block, level: Number(event.target.value) as Block<"heading">["level"] })
@@ -398,7 +395,7 @@ function HeadingFields({
           <option value={1}>1 — the issue title</option>
           <option value={2}>2 — a section</option>
           <option value={3}>3 — a sub-heading</option>
-        </select>
+        </Select>
       </Field>
     </>
   );

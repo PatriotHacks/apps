@@ -64,7 +64,7 @@ function AnswerBody({ view }: { view: AnswerView }) {
       return (
         <p className="text-sm text-destructive">
           Stored value does not match this question&apos;s type:{" "}
-          <code className="font-mono text-xs">{view.raw}</code>
+          <code className="font-mono text-xs break-all">{view.raw}</code>
         </p>
       );
   }
@@ -142,7 +142,7 @@ export default async function SubmissionDetailPage({
   const neighbourHref = (target: string) => `/submissions/${form.id}/${target}${suffix}`;
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <Link href={gridHref} className="text-sm text-muted-foreground hover:underline">
@@ -152,15 +152,18 @@ export default async function SubmissionDetailPage({
             <h1 className="text-xl font-semibold">{submission.fullName ?? submission.email}</h1>
             <SubmissionStatusBadge status={submission.status} />
           </div>
-          <p className="text-sm text-muted-foreground">
-            {submission.email} · submitted {formatDateTime(submission.submittedAt)} · last updated{" "}
-            {formatDateTime(submission.updatedAt)}
+          <p className="flex flex-col gap-0.5 text-sm text-muted-foreground sm:flex-row sm:gap-2">
+            <span className="break-all">{submission.email}</span>
+            <span className="hidden sm:inline">·</span>
+            <span>submitted {formatDateTime(submission.submittedAt)}</span>
+            <span className="hidden sm:inline">·</span>
+            <span>last updated {formatDateTime(submission.updatedAt)}</span>
           </p>
         </div>
 
         {/* Walking the pile without going back to the grid: the neighbours come
             from the same filtered, ordered set the grid showed. */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {neighbours?.previousId ? (
             <Button asChild variant="outline" size="sm">
               <Link href={neighbourHref(neighbours.previousId)}>Previous</Link>
@@ -250,28 +253,33 @@ export default async function SubmissionDetailPage({
       </div>
 
       {/* The notes panel sits beside the document rather than under it — a
-          reviewer writes while reading, not after scrolling past everything. */}
-      <aside className="flex w-full flex-col gap-6 lg:sticky lg:top-6 lg:w-96">
-        {staff.role === "admin" ? (
-          <DecisionPanel
-            formId={form.id}
-            submissionId={submission.id}
-            status={submission.status}
-            decidedAt={decision?.decidedAt ?? null}
-            decidedByEmail={decision?.decidedByEmail ?? null}
-            templateLabel={decisionTemplate ? TEMPLATE_LABELS[decisionTemplate] : null}
-            lastAttempt={lastAttempt}
-          />
-        ) : null}
+          reviewer writes while reading, not after scrolling past everything.
+          Below `lg` the aside is `display: contents`, so its two halves become
+          siblings of the document and the decision can lead while the notes
+          stay where writing-after-reading makes sense. */}
+      <aside className="contents lg:sticky lg:top-6 lg:flex lg:w-96 lg:flex-col lg:gap-6">
+        <div className="order-first flex flex-col gap-6 empty:hidden">
+          {staff.role === "admin" ? (
+            <DecisionPanel
+              formId={form.id}
+              submissionId={submission.id}
+              status={submission.status}
+              decidedAt={decision?.decidedAt ?? null}
+              decidedByEmail={decision?.decidedByEmail ?? null}
+              templateLabel={decisionTemplate ? TEMPLATE_LABELS[decisionTemplate] : null}
+              lastAttempt={lastAttempt}
+            />
+          ) : null}
 
-        {decision?.rsvpStatus ? (
-          <section className="rounded-lg border p-4">
-            <h2 className="font-medium">RSVP</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {decision.rsvpStatus} · {formatDateTime(decision.rsvpAt)}
-            </p>
-          </section>
-        ) : null}
+          {decision?.rsvpStatus ? (
+            <section className="rounded-lg border p-4">
+              <h2 className="font-medium">RSVP</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {decision.rsvpStatus} · {formatDateTime(decision.rsvpAt)}
+              </p>
+            </section>
+          ) : null}
+        </div>
 
         <ReviewNotes
           formId={form.id}

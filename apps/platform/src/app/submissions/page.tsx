@@ -38,7 +38,7 @@ export default async function SubmissionsPage() {
 
   return (
     <AppShell header={<SiteHeader />}>
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 p-8">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:p-8">
         <div className="flex flex-col gap-2">
           <Link href="/" className="text-sm text-muted-foreground underline underline-offset-4">
             All forms
@@ -52,8 +52,8 @@ export default async function SubmissionsPage() {
           <ul className="flex flex-col divide-y rounded-md border">
             {rows.map((row) => (
               <li key={row.id} className="flex items-center justify-between gap-4 p-4">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-medium">{row.title}</span>
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <span className="text-sm font-medium break-words">{row.title}</span>
                   <span className="text-xs text-muted-foreground">
                     {SUBMISSION_STATUS_LABELS[row.status]}
                     {row.submittedAt ? ` on ${formatDate(row.submittedAt)}` : ""}
@@ -61,7 +61,7 @@ export default async function SubmissionsPage() {
                 </div>
                 <Link
                   href={row.status === "draft" ? `/${row.slug}` : `/${row.slug}/review`}
-                  className="text-sm underline underline-offset-4"
+                  className="shrink-0 whitespace-nowrap text-sm underline underline-offset-4"
                 >
                   {row.status === "draft" ? "Continue" : "View"}
                 </Link>

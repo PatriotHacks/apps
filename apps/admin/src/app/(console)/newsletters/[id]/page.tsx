@@ -16,7 +16,7 @@ export default async function NewsletterPage({ params }: { params: Promise<{ id:
   if (!newsletter) notFound();
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div>
         <Link href="/newsletters" className="text-sm text-muted-foreground hover:underline">
           ← Newsletters

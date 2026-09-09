@@ -30,7 +30,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ slug: s
 
   return (
     <AppShell header={<SiteHeader />}>
-      <div className="mx-auto flex max-w-2xl flex-col gap-8 p-8">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-6 sm:p-8">
         <div className="flex flex-col gap-2">
           <Link href="/submissions" className="text-sm text-muted-foreground underline underline-offset-4">
             All submissions

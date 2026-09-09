@@ -1,13 +1,13 @@
 "use client";
 
 import type { Form } from "@patriothacks/database";
-import { Button, Input, Textarea } from "@patriothacks/ui";
+import { Button, Input, Select, Textarea } from "@patriothacks/ui";
 import { useState } from "react";
 
 import { SLUG_PATTERN } from "@/lib/slug";
 
 import { updateMeta } from "./actions";
-import { Field, SELECT_CLASS, useAction } from "./controls";
+import { Field, useAction } from "./controls";
 
 const EDIT_POLICIES: { value: Form["editPolicy"]; label: string }[] = [
   { value: "locked", label: "Locked once submitted" },
@@ -65,11 +65,10 @@ export function MetaEditor({ form }: { form: Form }) {
         />
       </Field>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field id="meta-edit-policy" label="Edit policy">
-          <select
+          <Select
             id="meta-edit-policy"
-            className={SELECT_CLASS}
             value={draft.editPolicy}
             onChange={(event) => set({ editPolicy: event.target.value })}
           >
@@ -78,7 +77,7 @@ export function MetaEditor({ form }: { form: Form }) {
                 {policy.label}
               </option>
             ))}
-          </select>
+          </Select>
         </Field>
 
         <Field id="meta-opens-at" label="Opens (UTC)">

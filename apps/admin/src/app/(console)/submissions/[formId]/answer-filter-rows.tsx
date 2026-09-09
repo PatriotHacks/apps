@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Input } from "@patriothacks/ui";
+import { Button, Input, Select } from "@patriothacks/ui";
 import { useState } from "react";
 
 import {
@@ -47,11 +47,14 @@ export function AnswerFilterRows({
         return (
           // Rows are positional: the three params are index-aligned on the
           // server, so a stable key by index is exactly right here.
-          <div key={index} className="flex flex-wrap items-center gap-2">
-            <select
+          <div
+            key={index}
+            className="flex flex-col gap-2 rounded-md border p-2 sm:flex-row sm:flex-wrap sm:items-center sm:border-0 sm:p-0"
+          >
+            <Select
               name="fq"
               aria-label="Question to filter on"
-              className="h-9 min-w-48 rounded-md border bg-background px-2 text-sm"
+              className="sm:w-auto sm:min-w-48"
               value={row.questionId}
               onChange={(event) => patch(index, { questionId: event.target.value })}
             >
@@ -61,12 +64,12 @@ export function AnswerFilterRows({
                   {q.label}
                 </option>
               ))}
-            </select>
+            </Select>
 
-            <select
+            <Select
               name="fop"
               aria-label="Filter operator"
-              className="h-9 rounded-md border bg-background px-2 text-sm"
+              className="sm:w-auto"
               value={operator}
               onChange={(event) => {
                 const next = event.target.value as AnswerOperator;
@@ -81,12 +84,12 @@ export function AnswerFilterRows({
                   {operatorLabel(question?.type ?? "short_answer", candidate)}
                 </option>
               ))}
-            </select>
+            </Select>
 
             <Input
               name="fv"
               aria-label="Filter value"
-              className="h-9 w-48"
+              className="sm:w-48"
               placeholder={needsValue ? "Value" : "Not needed"}
               readOnly={!needsValue}
               value={row.value}

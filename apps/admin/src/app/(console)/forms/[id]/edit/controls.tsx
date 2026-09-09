@@ -1,14 +1,10 @@
 "use client";
 
-import { Button, Label, cn } from "@patriothacks/ui";
+import { Button, Label, Select, cn } from "@patriothacks/ui";
 import type { BranchAction } from "@patriothacks/form-engine";
 import { useState, useTransition, type ReactNode } from "react";
 
 import type { ActionResult } from "./actions";
-
-/** Matches the `Input` primitive so a native select sits level with the rest. */
-export const SELECT_CLASS =
-  "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 dark:bg-input/30";
 
 /**
  * Structure lives in the database, not in React state, so every edit is a
@@ -100,10 +96,9 @@ export function BranchSelect({
   // An option's branch sits on the option's own row, where a second visible
   // label would only repeat what the row already says.
   const select = (
-      <select
+      <Select
         id={id}
         aria-label={label.length > 0 ? undefined : "Where this leads"}
-        className={SELECT_CLASS}
         value={value}
         disabled={disabled}
         onChange={(event) => {
@@ -122,7 +117,7 @@ export function BranchSelect({
             Jump to {target.label}
           </option>
         ))}
-      </select>
+      </Select>
   );
 
   if (label.length === 0) return select;
@@ -221,7 +216,7 @@ export function ConfirmDelete({
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border-2 border-destructive/40 bg-destructive/5 p-3">
+    <div className="flex max-w-sm flex-col gap-2 rounded-md border-2 border-destructive/40 bg-destructive/5 p-3">
       <p className="text-sm font-semibold text-destructive">{heading}</p>
       <div className="text-sm text-destructive/90">{body}</div>
 

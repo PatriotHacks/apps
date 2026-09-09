@@ -1,4 +1,12 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@patriothacks/ui";
+import {
+  DataList,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@patriothacks/ui";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -22,12 +30,12 @@ export default async function BroadcastDetailPage({
   if (!broadcast) notFound();
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div>
         <Link href="/emails/broadcasts" className="text-sm text-muted-foreground hover:underline">
           ← Broadcasts
         </Link>
-        <h1 className="mt-2 flex items-center gap-3 text-xl font-semibold">
+        <h1 className="mt-2 flex flex-wrap items-center gap-2 text-xl font-semibold">
           {broadcast.name}
           <BroadcastStatusBadge status={broadcast.status} />
         </h1>
@@ -75,34 +83,56 @@ export default async function BroadcastDetailPage({
         {broadcast.sends.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nothing has been attempted yet.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Recipient</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Attempted</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {broadcast.sends.map((send) => (
-                <TableRow key={`${send.toEmail}-${send.createdAt.toISOString()}`}>
-                  <TableCell>{send.toEmail}</TableCell>
-                  <TableCell
-                    className={send.status === "failed" ? "text-destructive" : undefined}
-                  >
-                    {send.status}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {send.error ?? "—"}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {formatDateTime(send.sentAt ?? send.createdAt)}
-                  </TableCell>
+          <DataList
+            rows={broadcast.sends}
+            getKey={(send) => `${send.toEmail}-${send.createdAt.toISOString()}`}
+            card={(send) => (
+              <div className="flex flex-col gap-1">
+                <span className="text-sm break-all">{send.toEmail}</span>
+                <span
+                  className={
+                    send.status === "failed"
+                      ? "text-xs text-destructive"
+                      : "text-xs text-muted-foreground"
+                  }
+                >
+                  {send.status} · {formatDateTime(send.sentAt ?? send.createdAt)}
+                </span>
+                {send.error ? (
+                  <span className="text-xs break-words text-muted-foreground">{send.error}</span>
+                ) : null}
+              </div>
+            )}
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Recipient</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Attempted</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {broadcast.sends.map((send) => (
+                  <TableRow key={`${send.toEmail}-${send.createdAt.toISOString()}`}>
+                    <TableCell className="break-all">{send.toEmail}</TableCell>
+                    <TableCell
+                      className={send.status === "failed" ? "text-destructive" : undefined}
+                    >
+                      {send.status}
+                    </TableCell>
+                    <TableCell className="max-w-64 text-xs break-words text-muted-foreground">
+                      {send.error ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {formatDateTime(send.sentAt ?? send.createdAt)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </DataList>
         )}
       </section>
     </div>
