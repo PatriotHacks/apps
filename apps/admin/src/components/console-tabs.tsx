@@ -11,7 +11,7 @@ export function ConsoleTabs({ items, label }: { items: NavItem[]; label: string 
   const active = activeHref(usePathname(), items);
 
   return (
-    <nav aria-label={label} className="flex gap-4 overflow-x-auto border-b px-6">
+    <nav aria-label={label} className="flex gap-4 overflow-x-auto border-b px-4 sm:px-6">
       {items.map((item) => (
         <Link
           key={item.href}
