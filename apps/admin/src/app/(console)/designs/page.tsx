@@ -37,14 +37,16 @@ export default async function DesignsPage() {
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6">
-      <div>
-        <h1 className="text-xl font-semibold">Designs</h1>
-        <p className="text-sm text-muted-foreground">
-          {rows.length} {rows.length === 1 ? "entry" : "entries"}
-        </p>
-      </div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Designs</h1>
+          <p className="text-sm text-muted-foreground">
+            {rows.length} {rows.length === 1 ? "entry" : "entries"}
+          </p>
+        </div>
 
-      {isAdmin ? <AddDesign /> : null}
+        {isAdmin ? <AddDesign /> : null}
+      </div>
 
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nothing here yet.</p>

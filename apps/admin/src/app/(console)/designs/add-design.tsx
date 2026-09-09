@@ -105,11 +105,9 @@ export function AddDesign() {
 
   return (
     <>
-      <div>
-        <Button type="button" size="sm" onClick={() => dialog.current?.showModal()}>
-          Add design
-        </Button>
-      </div>
+      <Button type="button" size="sm" onClick={() => dialog.current?.showModal()}>
+        Add design
+      </Button>
 
       {/* `m-auto` is what centres a modal dialog: the UA pins all four insets
           and Tailwind's preflight zeroes the auto margins that go with them. */}
