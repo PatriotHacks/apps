@@ -111,19 +111,24 @@ export default async function SubmissionDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ formId: string; submissionId: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const [{ id }, rawParams] = await Promise.all([params, searchParams]);
-  const [staff, detail] = await Promise.all([requireStaff(), loadSubmissionDetail(id, rawParams)]);
-  if (detail === null) notFound();
+  const [{ formId, submissionId }, rawParams] = await Promise.all([params, searchParams]);
+  const [staff, detail] = await Promise.all([
+    requireStaff(),
+    loadSubmissionDetail(submissionId, rawParams),
+  ]);
+  // The form comes from the submission itself, so a `formId` that disagrees with
+  // it addresses a submission this URL does not describe.
+  if (detail === null || detail.form.id !== formId) notFound();
 
   const { form, definition, submission, answers, reachability, revisions, query, neighbours } =
     detail;
 
   const [notes, decision] = await Promise.all([
-    loadReviewNotes(id),
-    loadDecisionState(id),
+    loadReviewNotes(submissionId),
+    loadDecisionState(submissionId),
   ]);
 
   const decisionTemplate = isDecisionStatus(submission.status)
@@ -132,9 +137,9 @@ export default async function SubmissionDetailPage({
   const lastAttempt = decisionTemplate ? (decision?.sends.get(decisionTemplate) ?? null) : null;
 
   const search = submissionSearchParams(query).toString();
-  const gridHref = `/forms/${form.id}/submissions${search === "" ? "" : `?${search}`}`;
-  const neighbourHref = (target: string) =>
-    `/submissions/${target}${search === "" ? "" : `?${search}`}`;
+  const suffix = search === "" ? "" : `?${search}`;
+  const gridHref = `/submissions/${form.id}${suffix}`;
+  const neighbourHref = (target: string) => `/submissions/${form.id}/${target}${suffix}`;
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -249,6 +254,7 @@ export default async function SubmissionDetailPage({
       <aside className="flex w-full flex-col gap-6 lg:sticky lg:top-6 lg:w-96">
         {staff.role === "admin" ? (
           <DecisionPanel
+            formId={form.id}
             submissionId={submission.id}
             status={submission.status}
             decidedAt={decision?.decidedAt ?? null}
@@ -268,6 +274,7 @@ export default async function SubmissionDetailPage({
         ) : null}
 
         <ReviewNotes
+          formId={form.id}
           submissionId={submission.id}
           notes={notes}
           mine={notes.find((note) => note.mine) ?? null}

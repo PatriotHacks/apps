@@ -17,11 +17,13 @@ import { saveReviewNote } from "./actions";
  * control.
  */
 export function ReviewNotes({
+  formId,
   submissionId,
   notes,
   mine,
   reviewerLabel,
 }: {
+  formId: string;
   submissionId: string;
   notes: ReviewNote[];
   mine: ReviewNote | null;
@@ -35,7 +37,7 @@ export function ReviewNotes({
 
   async function onSave() {
     setBusy(true);
-    const result = await saveReviewNote(submissionId, draft);
+    const result = await saveReviewNote(formId, submissionId, draft);
     setBusy(false);
     setError(result.status === "saved" ? null : result.message);
   }

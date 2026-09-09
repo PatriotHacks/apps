@@ -414,8 +414,9 @@ Behavior:
 /forms                       list, status, response counts
 /forms/new                   builder
 /forms/[id]                  builder (draft only) or read-only view (published)
-/forms/[id]/submissions      response grid
-/submissions/[id]            detail view
+/submissions                 one row per form, with its response count
+/submissions/[formId]        response grid
+/submissions/[formId]/[submissionId]   detail view
 /emails/templates            template editor
 /emails/broadcasts           audience builder and send
 /settings/admins             role management (admin only)

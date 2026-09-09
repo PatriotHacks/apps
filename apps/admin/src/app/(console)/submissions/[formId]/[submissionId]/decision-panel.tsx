@@ -35,6 +35,7 @@ const ACTION_LABEL: Record<SettableStatus, string> = {
  * provider outage cannot undo a decision it was never part of recording.
  */
 export function DecisionPanel({
+  formId,
   submissionId,
   status,
   decidedAt,
@@ -42,6 +43,7 @@ export function DecisionPanel({
   templateLabel,
   lastAttempt,
 }: {
+  formId: string;
   submissionId: string;
   status: SubmissionStatus;
   decidedAt: Date | null;
@@ -56,7 +58,7 @@ export function DecisionPanel({
 
   async function onSetStatus(next: SettableStatus) {
     setBusy(next);
-    const result = await setSubmissionStatus(submissionId, next);
+    const result = await setSubmissionStatus(formId, submissionId, next);
     setBusy(null);
     if (result.status === "updated") {
       setNotice({ tone: "ok", message: `Status is now ${submissionStatusLabel(next)}.` });
@@ -68,7 +70,7 @@ export function DecisionPanel({
 
   async function onSend() {
     setBusy("email");
-    const result = await sendDecisionEmail(submissionId);
+    const result = await sendDecisionEmail(formId, submissionId);
     setBusy(null);
     setNotice(
       result.status === "sent"
