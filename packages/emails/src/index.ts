@@ -7,6 +7,17 @@ export {
 } from "./interpolate.ts";
 export { EmailLayout, renderLayout, wrapText } from "./layout.tsx";
 export {
+  compileNewsletter,
+  isSafeUrl,
+  newsletterBlockSchema,
+  newsletterBlocksSchema,
+  parseNewsletterBlocks,
+  type CompiledNewsletter,
+  type NewsletterBlock,
+  type NewsletterBlockType,
+  type NewsletterParseResult,
+} from "./newsletter.ts";
+export {
   createResendProvider,
   resendProviderFromEnv,
   type EmailProvider,

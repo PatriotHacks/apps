@@ -18,7 +18,8 @@
     "@patriothacks/database": "workspace:*",
     "drizzle-orm": "0.45.2",
     "react-email": "6.9.3",
-    "resend": "6.26.0"
+    "resend": "6.26.0",
+    "zod": "4.5.4"
   },
   "peerDependencies": {
     "react": "^19",
