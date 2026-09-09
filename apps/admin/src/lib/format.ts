@@ -1,12 +1,21 @@
-/** UTC everywhere: the server renders these once and the strings must not shift. */
+/**
+ * Eastern everywhere. The zone is pinned rather than taken from the viewer so
+ * the string the server renders is the string the browser rehydrates, and
+ * `timeZoneName` names the offset actually in force rather than assuming one —
+ * `dateStyle`/`timeStyle` cannot carry it, hence the explicit components.
+ */
 const DATE_TIME = new Intl.DateTimeFormat("en-US", {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: "UTC",
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZone: "America/New_York",
+  timeZoneName: "short",
 });
 
 export function formatDateTime(value: Date | null): string {
-  return value ? `${DATE_TIME.format(value)} UTC` : "—";
+  return value ? DATE_TIME.format(value) : "—";
 }
 
 export function formatWindow(opensAt: Date | null, closesAt: Date | null): string {
