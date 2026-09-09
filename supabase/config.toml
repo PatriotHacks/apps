@@ -123,6 +123,22 @@ file_size_limit = "50MiB"
 # allowed_mime_types = ["image/png", "image/jpeg"]
 # objects_path = "./images"
 
+# Design materials for the console's Designs section. The same bucket is created
+# on hosted projects by 0008_design_assets.sql, which is also where its object
+# policies live — this block only exists so a local stack has it too.
+[storage.buckets.designs]
+public = false
+file_size_limit = "25MiB"
+allowed_mime_types = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+  "application/pdf",
+  "application/zip",
+]
+
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]
 enabled = true

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Checkbox, Input, Label, Select, Textarea } from "@patriothacks/ui";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
@@ -18,6 +19,8 @@ import {
 
 import {
   createBroadcast,
+  loadNewsletterBody,
+  loadTemplateBody,
   previewAudience,
   previewBroadcast,
   type BroadcastDraft,
@@ -26,14 +29,26 @@ import {
 
 const EMPTY_DRAFT: BroadcastDraft = { name: "", subject: "", bodyHtml: "", bodyText: "" };
 
+/**
+ * Where the body comes from. A one-off is written here; the other two are
+ * compiled on the server and copied in, after which the broadcast owns them.
+ * Built-in templates are deliberately absent — they reference `form_title` and
+ * `rsvp_url`, which no broadcast can fill.
+ */
+type BodySource = "manual" | "template" | "newsletter";
+
 const toggle = <T,>(list: T[], value: T): T[] =>
   list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
 
 export function BroadcastComposer({
   forms,
+  templates,
+  newsletters,
   variables,
 }: {
   forms: { id: string; title: string }[];
+  templates: { key: string; name: string }[];
+  newsletters: { id: string; name: string }[];
   /** Passed from the server so the emails package — and the `pg` driver behind
       it — never reaches the browser bundle. */
   variables: readonly string[];
@@ -44,8 +59,17 @@ export function BroadcastComposer({
   const [count, setCount] = useState<AudienceCount | null>(null);
   const [counting, startCounting] = useTransition();
   const [preview, setPreview] = useState<PreviewResult | null>(null);
-  const [busy, setBusy] = useState<"preview" | "save" | null>(null);
+  const [source, setSource] = useState<BodySource>("manual");
+  const [choiceId, setChoiceId] = useState("");
+  const [busy, setBusy] = useState<"preview" | "save" | "body" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const choices =
+    source === "template"
+      ? templates.map((template) => ({ value: template.key, label: template.name }))
+      : source === "newsletter"
+        ? newsletters.map((newsletter) => ({ value: newsletter.id, label: newsletter.name }))
+        : [];
 
   // Recounted whenever the filter moves, so the number on screen is always the
   // number this filter means rather than the number the last one meant.
@@ -67,6 +91,56 @@ export function BroadcastComposer({
       setError(null);
     },
   });
+
+  /**
+   * Compiled on the server and copied in, so the broadcast owns what it sends
+   * from here on. A template hands over its own subject as well — retyping it on
+   * every broadcast that sends the template is the whole thing a template is
+   * meant to save — while a newsletter has none, and the broadcast keeps the
+   * subject it already has.
+   *
+   * Overwriting is confirmed rather than prevented: loading a design over a
+   * half-written broadcast is a normal thing to want, and losing it silently is
+   * not. The confirm names only what is actually about to be replaced, and an
+   * empty field is not a loss, so filling one asks nothing.
+   */
+  async function onLoadBody() {
+    if (source === "manual") return;
+
+    const replacing = [
+      source === "template" && draft.subject.trim().length > 0 ? "the subject" : null,
+      draft.bodyHtml.trim().length > 0 || draft.bodyText.trim().length > 0
+        ? "the HTML and text bodies"
+        : null,
+    ].filter((part) => part !== null);
+
+    if (
+      replacing.length > 0 &&
+      !window.confirm(`Replace ${replacing.join(" and ")} with this ${source}?`)
+    ) {
+      return;
+    }
+
+    setBusy("body");
+    const result =
+      source === "template"
+        ? await loadTemplateBody(choiceId)
+        : await loadNewsletterBody(choiceId);
+    setBusy(null);
+
+    if (result.status === "invalid") {
+      setError(result.message);
+      return;
+    }
+
+    setDraft((current) => ({
+      ...current,
+      subject: result.subject ?? current.subject,
+      bodyHtml: result.bodyHtml,
+      bodyText: result.bodyText,
+    }));
+    setError(null);
+  }
 
   async function onPreview() {
     setBusy("preview");
@@ -108,6 +182,73 @@ export function BroadcastComposer({
         <div className="flex flex-col gap-2">
           <Label htmlFor="subject">Subject</Label>
           <Input id="subject" {...field("subject")} />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="bodySource">Body</Label>
+          <Select
+            id="bodySource"
+            value={source}
+            onChange={(event) => {
+              setSource(event.target.value as BodySource);
+              setChoiceId("");
+              setError(null);
+            }}
+          >
+            <option value="manual">Write a one-off</option>
+            <option value="template">Use an email template</option>
+            <option value="newsletter">Use a newsletter</option>
+          </Select>
+
+          {source === "manual" ? null : choices.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              Nothing saved to load yet. Build one in{" "}
+              {source === "template" ? (
+                <Link href="/emails/templates/new" className="underline">
+                  Email templates
+                </Link>
+              ) : (
+                <Link href="/newsletters/new" className="underline">
+                  Newsletters
+                </Link>
+              )}
+              .
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-wrap gap-2">
+                <Select
+                  id="bodyChoice"
+                  aria-label={source === "template" ? "Template" : "Newsletter"}
+                  className="min-w-52 flex-1"
+                  value={choiceId}
+                  onChange={(event) => setChoiceId(event.target.value)}
+                >
+                  <option value="">
+                    {source === "template" ? "Pick a template" : "Pick a newsletter"}
+                  </option>
+                  {choices.map((choice) => (
+                    <option key={choice.value} value={choice.value}>
+                      {choice.label}
+                    </option>
+                  ))}
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={onLoadBody}
+                  disabled={busy !== null || choiceId === ""}
+                >
+                  {busy === "body" ? "Loading…" : "Load"}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {source === "template"
+                  ? "Fills the subject and both bodies from the template."
+                  : "Fills both bodies with the compiled newsletter."}{" "}
+                Edit them here afterwards if you like — the {source} itself is untouched.
+              </p>
+            </>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">

@@ -42,14 +42,14 @@ function toSearchParams(url: URL): SearchParams {
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ formId: string }> },
 ): Promise<Response> {
-  const { id } = await params;
+  const { formId } = await params;
   const db = await staffClient();
 
   const setup = await db
     .rls(async (tx) => {
-      const loaded = await loadFormDefinition(tx, id);
+      const loaded = await loadFormDefinition(tx, formId);
       if (loaded === null) return null;
 
       const questions = orderedQuestions(loaded.definition);
@@ -61,7 +61,7 @@ export async function GET(
         definition: loaded.definition,
         questions,
         query,
-        where: submissionConditions(id, query, byId),
+        where: submissionConditions(formId, query, byId),
       };
     })
     .catch(async (error: unknown) => {

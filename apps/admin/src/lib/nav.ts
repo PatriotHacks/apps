@@ -10,6 +10,9 @@ export type NavItem = {
 /** Top-level sections. One entry per section, never one per page. */
 export const NAV_ITEMS: NavItem[] = [
   { href: "/forms", label: "Forms" },
+  { href: "/submissions", label: "Submissions" },
+  { href: "/newsletters", label: "Newsletter", adminOnly: true },
+  { href: "/designs", label: "Designs" },
   { href: "/emails", label: "Email", adminOnly: true },
 ];
 

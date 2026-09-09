@@ -46,7 +46,11 @@ const reason = (cause: unknown) => (cause instanceof Error ? cause.message : Str
  * note. `submission_reviews_update_own` refuses it in Postgres as well, which
  * is what makes that true even if this function is bypassed entirely.
  */
-export async function saveReviewNote(submissionId: string, notes: string): Promise<NoteResult> {
+export async function saveReviewNote(
+  formId: string,
+  submissionId: string,
+  notes: string,
+): Promise<NoteResult> {
   const staff = await requireStaff();
   if (!isUuid(submissionId)) return { status: "error", message: "Unknown submission." };
 
@@ -67,7 +71,7 @@ export async function saveReviewNote(submissionId: string, notes: string): Promi
     return { status: "error", message: reason(cause) };
   }
 
-  revalidatePath(`/submissions/${submissionId}`);
+  revalidatePath(`/submissions/${formId}/${submissionId}`);
   return { status: "saved" };
 }
 
@@ -80,6 +84,7 @@ export async function saveReviewNote(submissionId: string, notes: string): Promi
  * stands is worse than no stamp at all.
  */
 export async function setSubmissionStatus(
+  formId: string,
   submissionId: string,
   status: string,
 ): Promise<StatusResult> {
@@ -119,7 +124,7 @@ export async function setSubmissionStatus(
       return { status: "updated", value: status };
     });
 
-    if (outcome.status === "updated") revalidatePath(`/submissions/${submissionId}`);
+    if (outcome.status === "updated") revalidatePath(`/submissions/${formId}/${submissionId}`);
     return outcome;
   } catch (cause) {
     return { status: "error", message: reason(cause) };
@@ -132,7 +137,10 @@ export async function setSubmissionStatus(
  * The status is read from the database rather than passed in, so this can only
  * ever tell an applicant what the record actually says.
  */
-export async function sendDecisionEmail(submissionId: string): Promise<DecisionEmailResult> {
+export async function sendDecisionEmail(
+  formId: string,
+  submissionId: string,
+): Promise<DecisionEmailResult> {
   await requireAdmin();
   if (!isUuid(submissionId)) return { status: "failed", message: "Unknown submission." };
 
@@ -215,7 +223,7 @@ export async function sendDecisionEmail(submissionId: string): Promise<DecisionE
 
     // Revalidated either way: a failed attempt is still a row in `email_sends`,
     // and the page reads it back, so the failure outlives the toast.
-    revalidatePath(`/submissions/${submissionId}`);
+    revalidatePath(`/submissions/${formId}/${submissionId}`);
     return outcome;
   } catch (cause) {
     return { status: "failed", message: reason(cause) };

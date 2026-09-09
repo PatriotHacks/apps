@@ -133,15 +133,15 @@ export default async function FormSubmissionsPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ formId: string }>;
   searchParams: Promise<SearchParams>;
 }) {
-  const [{ id }, rawParams] = await Promise.all([params, searchParams]);
-  const [staff, grid] = await Promise.all([requireStaff(), loadSubmissionGrid(id, rawParams)]);
+  const [{ formId }, rawParams] = await Promise.all([params, searchParams]);
+  const [staff, grid] = await Promise.all([requireStaff(), loadSubmissionGrid(formId, rawParams)]);
   if (grid === null) notFound();
 
   const { form, questions, query, total, rows } = grid;
-  const base = `/forms/${form.id}/submissions`;
+  const base = `/submissions/${form.id}`;
   const visibleIds = new Set(visibleColumnIds(query, questions));
   const columns = questions.filter((question) => visibleIds.has(question.id));
 
@@ -288,7 +288,7 @@ export default async function FormSubmissionsPage({
         getKey={(row) => row.id}
         card={(row) => (
           <Link
-            href={`/submissions/${row.id}?${submissionSearchParams(query).toString()}`}
+            href={`${base}/${row.id}?${submissionSearchParams(query).toString()}`}
             className="flex flex-col gap-2"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -346,7 +346,7 @@ export default async function FormSubmissionsPage({
               <TableRow key={row.id}>
                 <TableCell>
                   <Link
-                    href={`/submissions/${row.id}?${submissionSearchParams(query).toString()}`}
+                    href={`${base}/${row.id}?${submissionSearchParams(query).toString()}`}
                     className="font-medium hover:underline"
                   >
                     {row.fullName ?? row.email}

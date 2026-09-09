@@ -1,4 +1,4 @@
-import { TEMPLATE_LABELS, variablesFor } from "@patriothacks/emails";
+import { variablesFor } from "@patriothacks/emails";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -6,8 +6,14 @@ import { requireAdmin } from "@/lib/auth";
 import { getTemplate } from "@/lib/email-templates";
 import { formatDateTime } from "@/lib/format";
 
+import { TemplateBuilder } from "../template-builder";
 import { TemplateEditor } from "./template-editor";
 
+/**
+ * One entry point, two editors. A built-in is raw HTML an organizer words; a
+ * template an admin created is a block design. Which one you get is decided by
+ * the key the loader resolved, not by a query parameter.
+ */
 export default async function EmailTemplatePage({
   params,
 }: {
@@ -25,22 +31,30 @@ export default async function EmailTemplatePage({
         <Link href="/emails/templates" className="text-sm text-muted-foreground hover:underline">
           ← Email templates
         </Link>
-        <h1 className="mt-2 text-xl font-semibold">{TEMPLATE_LABELS[template.key]}</h1>
+        <h1 className="mt-2 text-xl font-semibold">{template.label}</h1>
         <p className="text-sm text-muted-foreground">
           {template.key} · updated {formatDateTime(template.updatedAt)}
         </p>
       </div>
 
-      <TemplateEditor
-        templateKey={template.key}
-        variables={[...variablesFor(template.key)]}
-        testAddress={staff.email ?? null}
-        initial={{
-          subject: template.subject,
-          bodyHtml: template.bodyHtml,
-          bodyText: template.bodyText,
-        }}
-      />
+      {template.kind === "builtin" ? (
+        <TemplateEditor
+          templateKey={template.key}
+          variables={[...variablesFor(template.key)]}
+          testAddress={staff.email ?? null}
+          initial={{
+            subject: template.subject,
+            bodyHtml: template.bodyHtml,
+            bodyText: template.bodyText,
+          }}
+        />
+      ) : (
+        <TemplateBuilder
+          templateKey={template.key}
+          initial={{ name: template.label, subject: template.subject, blocks: template.blocks }}
+          variables={variablesFor(template.key)}
+        />
+      )}
     </div>
   );
 }

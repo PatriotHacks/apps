@@ -258,8 +258,11 @@ can review any submission; multiple reviews per submission are expected.
 
 ### Email
 
-**email_templates** — `id`, `key` (unique), `subject`, `body_html`, `body_text`, `updated_by`, `updated_at`.
-Seeded keys: `decision_accepted`, `decision_waitlisted`, `decision_rejected`, `rsvp_confirmed`.
+**email_templates** — `id`, `key` (unique), `name`, `subject`, `body_html`, `body_text`,
+`blocks jsonb`, `updated_by`, `created_at`, `updated_at`. Seeded keys: `decision_accepted`,
+`decision_waitlisted`, `decision_rejected`, `rsvp_confirmed`. `name` and `blocks` are null for those
+four and set for a template an admin built; a check constraint enforces both or neither, since SQL
+cannot read the code catalogue that decides which a key belongs to.
 
 **broadcasts** — `id`, `name`, `subject`, `body_html`, `body_text`, `audience_filter jsonb`,
 `status broadcast_status`, `recipient_count`, `created_by`, `created_at`, `sent_at`.
@@ -414,10 +417,15 @@ Behavior:
 /forms                       list, status, response counts
 /forms/new                   builder
 /forms/[id]                  builder (draft only) or read-only view (published)
-/forms/[id]/submissions      response grid
-/submissions/[id]            detail view
+/submissions                 one row per form, with its response count
+/submissions/[formId]        response grid
+/submissions/[formId]/[submissionId]   detail view
+/designs                     design materials: uploaded files and links
 /emails/templates            template editor
 /emails/broadcasts           audience builder and send
+/newsletters                 saved newsletter designs
+/newsletters/new             block builder
+/newsletters/[id]            block builder
 /settings/admins             role management (admin only)
 ```
 
@@ -472,11 +480,41 @@ a confirmation email.
 all mentors), preview against a real recipient, send. Respects `email_unsubscribes`. Every recipient
 gets an `email_sends` row.
 
+The body comes from one of three places, chosen in the composer: a one-off written there, a custom
+email template, or a newsletter. Either reusable source is compiled on the server and copied onto the
+broadcast's own `body_html` and `body_text`, so audience selection and sending stay entirely with
+broadcasts and editing or deleting the source afterwards changes nothing already queued or sent. A
+template hands over its subject as well, since not retyping it on every broadcast that sends the
+template is half of what a template is for; a newsletter has no subject to hand over. Built-in
+templates are never offered as a source — their variables cannot be filled from a broadcast.
+
 At 2000 recipients, sending happens in batches with retry, not in a single request handler. Worker
 CPU limits make a synchronous 2000-send loop a non-starter.
 
 Templates are stored in the database with `{{variable}}` interpolation and edited in the console.
 The layout shell lives in `packages/emails`; organizers own the words, not the rendering.
+
+**Custom templates** — the four seeded keys are transactional: what each one means and which
+variables it may reference is code, because only the decision and RSVP send sites can supply a
+`{{form_title}}` or an `{{rsvp_url}}`. An admin can also create templates of their own, from the same
+typed blocks a newsletter is built from, and they live in the same `email_templates` table so the
+console keeps one list and one editor entry point — a key the catalogue declares opens the HTML
+editor, anything else opens the block builder. A custom template is restricted to the broadcast
+variables `{{full_name}}`, `{{email}}`, `{{year}}` and `{{unsubscribe_url}}`, which is exactly what
+makes one always sendable from a broadcast; anything else is rejected on save by the same gate the
+built-in editor uses. Its key is slugged from the name and prefixed `custom_`, so it can never
+collide with a catalogue key present or future, and it is assigned once at creation and never follows
+a rename, because `email_sends.template_key` records it. Deleting one is admin-only and confirmed
+first.
+
+**Newsletters** — a newsletter is a design, not a send. Organizers assemble a recurring issue from
+typed blocks (heading, paragraph, image, button, divider) in `/newsletters`, preview it, and save it
+to the `newsletters` table as jsonb. A broadcast then loads one as its body, on the terms above. The
+compiler lives in `packages/emails` beside the layout shell and is shared with custom templates: it
+emits body-level, table-based, inline-styled markup only, escapes every authored string while leaving
+`{{variable}}` intact for interpolation at send time, and validates every URL as `http:` or `https:`
+in the schema. Inline links are written as `[label](url)` and entered as form fields, so no organizer
+ever hand-writes an anchor.
 
 Sending requires SPF, DKIM, and DMARC records on `patriothacks.org` — which is a point in favor of
 the domain already being on Cloudflare.
@@ -485,12 +523,37 @@ the domain already being on Cloudflare.
 
 ## 12. Storage
 
+Two private buckets, with different shapes because the uploads reach them differently.
+
+### `submissions` — applicant uploads
+
 Private Supabase Storage bucket. Objects at `{user_id}/{submission_id}/{question_id}`.
 
 - PDF only, 10MB max
 - Type validated server-side by magic bytes, not by extension or by trusting the file picker
 - Bucket policy restricts writes to the owning user's prefix
 - Admin downloads issue a 60-second signed URL; the bucket is never public
+
+### `designs` — design materials
+
+Private bucket behind the console's Designs section. Objects at `{asset_id}/{file_name}`, so a
+signed URL downloads under the name the file was uploaded with.
+
+- PNG, JPEG, WebP, GIF, SVG, PDF and ZIP, 25MB max
+- The browser uploads straight to storage on the admin's own session and a server action records
+  the row afterwards. Nothing streams through the app: a server action body is capped at 1MB by
+  default, and pushing 25MB through a Worker is the wrong shape.
+- Which means type and size are enforced by the bucket's own `allowed_mime_types` and
+  `file_size_limit` rather than by magic bytes — there are no bytes on the server to inspect. The
+  `accept` attribute and the check in the action only keep the console from offering what the
+  bucket would refuse.
+- Object policies: read to `is_organizer()`, write to `is_admin()`. An organizer's upload is
+  refused by the database, not by the console hiding the control.
+- Reads issue a 60-second signed URL; the bucket is never public. Raster images get a thumbnail;
+  SVG and PDF are never rendered inline in the console, because an uploaded SVG is untrusted
+  markup — they open in their own tab through the signed URL.
+- A failed insert removes the object it had already uploaded, so a file nothing names cannot
+  accumulate.
 
 ---
 

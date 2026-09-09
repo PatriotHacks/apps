@@ -92,7 +92,7 @@ export async function setStatusForFilter(
       return { status: "updated", changed: changed.length, skipped: total - changed.length };
     });
 
-    if (outcome.status === "updated") revalidatePath(`/forms/${formId}/submissions`);
+    if (outcome.status === "updated") revalidatePath(`/submissions/${formId}`);
     return outcome;
   } catch (cause) {
     return { status: "error", message: reason(cause) };

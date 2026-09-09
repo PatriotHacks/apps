@@ -150,7 +150,7 @@ export default async function FormDetailPage({ params }: { params: Promise<{ id:
             </Button>
           ) : null}
           <Button asChild variant="outline" size="sm">
-            <Link href={`/forms/${form.id}/submissions`}>Submissions</Link>
+            <Link href={`/submissions/${form.id}`}>Submissions</Link>
           </Button>
         </div>
       </div>

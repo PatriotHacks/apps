@@ -70,7 +70,7 @@ export default async function FormsPage() {
             <p className="text-xs text-muted-foreground">
               {formatWindow(row.opensAt, row.closesAt)}
             </p>
-            <Link href={`/forms/${row.id}/submissions`} className="text-sm hover:underline">
+            <Link href={`/submissions/${row.id}`} className="text-sm hover:underline">
               {row.submissionCount} {row.submissionCount === 1 ? "submission" : "submissions"}
             </Link>
             {isAdmin ? (
@@ -131,7 +131,7 @@ export default async function FormsPage() {
                 <TableCell className="text-right tabular-nums">{row.sectionCount}</TableCell>
                 <TableCell className="text-right tabular-nums">{row.questionCount}</TableCell>
                 <TableCell className="text-right tabular-nums">
-                  <Link href={`/forms/${row.id}/submissions`} className="hover:underline">
+                  <Link href={`/submissions/${row.id}`} className="hover:underline">
                     {row.submissionCount}
                   </Link>
                 </TableCell>
