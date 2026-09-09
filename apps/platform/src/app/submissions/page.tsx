@@ -1,6 +1,6 @@
 import { forms, submissions } from "@patriothacks/database";
 import { AppShell } from "@patriothacks/ui";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
 
 import { requireClaims } from "@/lib/auth";
@@ -13,10 +13,11 @@ export default async function SubmissionsPage() {
 
   // `submissions_select_own` scopes this to the caller; the join to forms is
   // what turns a row into something worth reading.
-  const rows = await withRls(claims, (tx) =>
+  const all = await withRls(claims, (tx) =>
     tx
       .select({
         id: submissions.id,
+        formId: submissions.formId,
         status: submissions.status,
         submittedAt: submissions.submittedAt,
         updatedAt: submissions.updatedAt,
@@ -24,9 +25,16 @@ export default async function SubmissionsPage() {
         title: forms.title,
       })
       .from(submissions)
-      .innerJoin(forms, eq(forms.id, submissions.formId))
+      .innerJoin(forms, and(eq(forms.id, submissions.formId), isNull(forms.deletedAt)))
       .orderBy(desc(submissions.updatedAt)),
   );
+
+  // One row per form — whatever is current. `unique (form_id, user_id)` should
+  // already guarantee that, so this is a belt-and-braces pass rather than the
+  // thing doing the work: ordered newest first, the first row for a form is the
+  // one to keep and any later duplicate is stale.
+  const seen = new Set<string>();
+  const rows = all.filter((row) => !seen.has(row.formId) && seen.add(row.formId));
 
   return (
     <AppShell header={<SiteHeader />}>
