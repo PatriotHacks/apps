@@ -46,7 +46,7 @@ export function Builder({
   const sections = [...definition.sections].sort((a, b) => a.position - b.position);
 
   return (
-    <div className="flex flex-col gap-6 p-6" onClick={() => setFocused(null)}>
+    <div className="flex flex-col gap-6 p-4 sm:p-6" onClick={() => setFocused(null)}>
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

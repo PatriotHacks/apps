@@ -21,9 +21,11 @@ export {
   CardTitle,
 } from "#components/card";
 export { Checkbox } from "#components/checkbox";
+export { DataList } from "#components/data-list";
 export { Input } from "#components/input";
 export { Label } from "#components/label";
 export { RadioGroup, RadioGroupItem } from "#components/radio-group";
+export { Select } from "#components/select";
 export {
   Table,
   TableBody,

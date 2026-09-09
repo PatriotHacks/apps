@@ -1,5 +1,6 @@
 "use client";
 
+import { Select } from "@patriothacks/ui";
 import { choiceOptions } from "../../types";
 import type { QuestionFieldProps } from "../field-props";
 import {
@@ -9,13 +10,10 @@ import {
 } from "../field-shell";
 
 /**
- * Mirrors the `Input` primitive's styling. A native `<select>` keeps the
- * platform picker on mobile and full keyboard support for free, which matters
- * more on an application form than matching a custom listbox.
+ * `Select` is a styled native `<select>`, which keeps the platform picker on
+ * mobile and full keyboard support for free — worth more on an application
+ * form than matching a custom listbox.
  */
-const SELECT_CLASS =
-  "h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:aria-invalid:ring-destructive/40";
-
 export function DropdownField({
   question,
   value,
@@ -27,9 +25,8 @@ export function DropdownField({
 
   return (
     <FieldShell question={question} error={error} labelFor={controlId}>
-      <select
+      <Select
         id={controlId}
-        className={SELECT_CLASS}
         value={value ?? ""}
         disabled={disabled}
         aria-required={question.required}
@@ -43,7 +40,7 @@ export function DropdownField({
             {option.label}
           </option>
         ))}
-      </select>
+      </Select>
     </FieldShell>
   );
 }

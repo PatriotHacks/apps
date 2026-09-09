@@ -132,7 +132,7 @@ export default async function FormDetailPage({ params }: { params: Promise<{ id:
   const editable = staff.role === "admin";
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <div className="flex flex-wrap items-center gap-2">

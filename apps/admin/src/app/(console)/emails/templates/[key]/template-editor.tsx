@@ -80,7 +80,7 @@ export function TemplateEditor({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="bodyHtml">HTML body</Label>
-        <Textarea id="bodyHtml" rows={8} className="font-mono text-xs" {...field("bodyHtml")} />
+        <Textarea id="bodyHtml" rows={8} className="font-mono text-base md:text-xs" {...field("bodyHtml")} />
         <p className="text-xs text-muted-foreground">
           Goes inside the shared layout — no doctype, header or footer needed.
         </p>
@@ -88,7 +88,7 @@ export function TemplateEditor({
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="bodyText">Text body</Label>
-        <Textarea id="bodyText" rows={6} className="font-mono text-xs" {...field("bodyText")} />
+        <Textarea id="bodyText" rows={6} className="font-mono text-base md:text-xs" {...field("bodyText")} />
       </div>
 
       {notice ? (

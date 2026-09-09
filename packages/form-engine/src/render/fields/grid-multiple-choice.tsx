@@ -38,7 +38,7 @@ export function GridMultipleChoiceField({
         aria-labelledby={fieldLabelId(question.id)}
         aria-describedby={fieldDescribedBy(question, error)}
       >
-        <table className="w-full border-collapse text-sm">
+        <table className="w-auto min-w-full border-collapse text-sm">
           <thead>
             <tr>
               <td />
@@ -60,7 +60,7 @@ export function GridMultipleChoiceField({
                 <th
                   scope="row"
                   id={gridRowHeaderId(controlId, row.id)}
-                  className="py-2 pr-4 text-left font-normal"
+                  className="min-w-[9rem] py-2 pr-4 text-left font-normal"
                 >
                   {row.label}
                 </th>
@@ -68,7 +68,7 @@ export function GridMultipleChoiceField({
                   <td key={column.id} className="px-2 py-2 text-center">
                     <input
                       type="radio"
-                      className="size-4 accent-primary"
+                      className="size-5 accent-primary sm:size-4"
                       name={`${controlId}-${row.id}`}
                       value={column.id}
                       checked={selection[row.id] === column.id}

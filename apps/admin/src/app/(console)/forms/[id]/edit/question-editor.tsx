@@ -12,7 +12,7 @@ import {
   type QuestionOption,
   type QuestionType,
 } from "@patriothacks/form-engine";
-import { Button, Checkbox, Label, cn } from "@patriothacks/ui";
+import { Button, Checkbox, Label, Select, cn } from "@patriothacks/ui";
 
 import {
   addOption,
@@ -31,7 +31,6 @@ import {
   BranchSelect,
   ConfirmDelete,
   InlineInput,
-  SELECT_CLASS,
   answerPhrase,
   useAction,
   useSynced,
@@ -94,24 +93,28 @@ function OptionRow({
 
   return (
     <li className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        <span aria-hidden className="w-5 shrink-0 text-center text-sm text-muted-foreground">
-          {optionGlyph(question.type, option.kind, index)}
-        </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Glyph and label stay welded together on the first line; the branch
+            select is what drops below when there is no room for all three. */}
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span aria-hidden className="w-5 shrink-0 text-center text-sm text-muted-foreground">
+            {optionGlyph(question.type, option.kind, index)}
+          </span>
 
-        <InlineInput
-          ariaLabel={`${name} label`}
-          value={label}
-          disabled={pending}
-          className="flex-1 text-sm"
-          onChange={setLabel}
-          onCommit={() => {
-            if (label !== option.label) run(() => updateOption(formId, option.id, label));
-          }}
-        />
+          <InlineInput
+            ariaLabel={`${name} label`}
+            value={label}
+            disabled={pending}
+            className="flex-1 text-sm"
+            onChange={setLabel}
+            onCommit={() => {
+              if (label !== option.label) run(() => updateOption(formId, option.id, label));
+            }}
+          />
+        </div>
 
         {branchable ? (
-          <div className="w-56 shrink-0">
+          <div className="order-last w-full shrink-0 sm:order-none sm:w-56">
             <BranchSelect
               id={`option-${option.id}-branch`}
               label=""
@@ -126,7 +129,7 @@ function OptionRow({
           </div>
         ) : null}
 
-        <div className="flex shrink-0 items-center">
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             type="button"
             size="sm"
@@ -345,9 +348,9 @@ export function QuestionEditor({
               />
             </div>
 
-            <select
+            <Select
               aria-label="Question type"
-              className={cn(SELECT_CLASS, "w-56 shrink-0")}
+              className="w-56 shrink-0"
               value={question.type}
               disabled={pending}
               onChange={(event) => {
@@ -368,7 +371,7 @@ export function QuestionEditor({
                   {QUESTION_TYPE_REGISTRY[value].label}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
 
           <InlineInput

@@ -51,13 +51,13 @@ interface AuthLayoutProps {
 function AuthLayout({ wordmark, heading, children }: AuthLayoutProps) {
   return (
     <div className="flex min-h-svh bg-background">
-      <div className="flex flex-1 items-center justify-center px-6 py-16">
+      <div className="flex flex-1 items-center justify-center px-6 py-10 sm:py-16">
         <div className="w-full max-w-sm">
           <p className="font-serif text-4xl leading-[1.05] lowercase italic min-[900px]:text-[2.75rem]">
             {wordmark}
           </p>
-          <h1 className="mt-10 font-serif text-xl text-muted-foreground">{heading}</h1>
-          <div className="mt-10 flex flex-col gap-4">{children}</div>
+          <h1 className="mt-8 font-serif text-xl text-muted-foreground sm:mt-10">{heading}</h1>
+          <div className="mt-8 flex flex-col gap-4 sm:mt-10">{children}</div>
         </div>
       </div>
 

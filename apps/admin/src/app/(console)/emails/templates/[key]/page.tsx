@@ -20,7 +20,7 @@ export default async function EmailTemplatePage({
   if (!template) notFound();
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div>
         <Link href="/emails/templates" className="text-sm text-muted-foreground hover:underline">
           ← Email templates
