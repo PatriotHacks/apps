@@ -41,12 +41,20 @@ export function canEditQuestion(
   return editPolicy === "per_question" && question.editableAfterSubmit;
 }
 
-/** Stored UTC, rendered in the event's timezone. */
+/**
+ * Stored UTC, rendered in Eastern — the event's timezone. `timeZoneName` names
+ * the offset actually in force rather than assuming one, and cannot be combined
+ * with `dateStyle`/`timeStyle`, hence the explicit components.
+ */
 export function formatDate(value: Date): string {
   return value.toLocaleString("en-US", {
     timeZone: "America/New_York",
-    dateStyle: "medium",
-    timeStyle: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
   });
 }
 
