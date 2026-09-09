@@ -417,6 +417,7 @@ Behavior:
 /submissions                 one row per form, with its response count
 /submissions/[formId]        response grid
 /submissions/[formId]/[submissionId]   detail view
+/designs                     design materials: uploaded files and links
 /emails/templates            template editor
 /emails/broadcasts           audience builder and send
 /settings/admins             role management (admin only)
@@ -486,12 +487,37 @@ the domain already being on Cloudflare.
 
 ## 12. Storage
 
+Two private buckets, with different shapes because the uploads reach them differently.
+
+### `submissions` — applicant uploads
+
 Private Supabase Storage bucket. Objects at `{user_id}/{submission_id}/{question_id}`.
 
 - PDF only, 10MB max
 - Type validated server-side by magic bytes, not by extension or by trusting the file picker
 - Bucket policy restricts writes to the owning user's prefix
 - Admin downloads issue a 60-second signed URL; the bucket is never public
+
+### `designs` — design materials
+
+Private bucket behind the console's Designs section. Objects at `{asset_id}/{file_name}`, so a
+signed URL downloads under the name the file was uploaded with.
+
+- PNG, JPEG, WebP, GIF, SVG, PDF and ZIP, 25MB max
+- The browser uploads straight to storage on the admin's own session and a server action records
+  the row afterwards. Nothing streams through the app: a server action body is capped at 1MB by
+  default, and pushing 25MB through a Worker is the wrong shape.
+- Which means type and size are enforced by the bucket's own `allowed_mime_types` and
+  `file_size_limit` rather than by magic bytes — there are no bytes on the server to inspect. The
+  `accept` attribute and the check in the action only keep the console from offering what the
+  bucket would refuse.
+- Object policies: read to `is_organizer()`, write to `is_admin()`. An organizer's upload is
+  refused by the database, not by the console hiding the control.
+- Reads issue a 60-second signed URL; the bucket is never public. Raster images get a thumbnail;
+  SVG and PDF are never rendered inline in the console, because an uploaded SVG is untrusted
+  markup — they open in their own tab through the signed URL.
+- A failed insert removes the object it had already uploaded, so a file nothing names cannot
+  accumulate.
 
 ---
 
