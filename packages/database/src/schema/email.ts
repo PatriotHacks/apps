@@ -70,6 +70,29 @@ export const emailSends = pgTable(
   ],
 );
 
+/**
+ * A newsletter is a design, not a send: an ordered list of typed blocks that a
+ * broadcast compiles into its own body. Nothing here mails anybody, which is
+ * why there is no status, no audience and no `sent_at`.
+ *
+ * `blocks` is validated by the zod schema in `@patriothacks/emails` on the way
+ * in and on the way out, so the shape of the jsonb is code rather than a
+ * database constraint.
+ */
+export const newsletters = pgTable(
+  "newsletters",
+  {
+    id: uuid("id").primaryKey().defaultRandom().notNull(),
+    name: text("name").notNull(),
+    blocks: jsonb("blocks").notNull(),
+    createdBy: uuid("created_by").references(() => profiles.id, { onDelete: "set null" }),
+    updatedBy: uuid("updated_by").references(() => profiles.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  () => [adminOnly("newsletters_all_admin")],
+);
+
 /** Consulted for broadcasts only. Transactional decision and RSVP mail ignores it. */
 export const emailUnsubscribes = pgTable(
   "email_unsubscribes",
