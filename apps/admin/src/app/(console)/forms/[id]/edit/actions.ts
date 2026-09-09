@@ -324,12 +324,40 @@ function buildConfig(
   };
 }
 
-/** `datetime-local` has no zone; the console reads and writes UTC throughout. */
+const EASTERN_OFFSET = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  timeZoneName: "longOffset",
+});
+
+/** The zone's offset at that instant, `"GMT-04:00"` read back as `"-04:00"`. */
+function easternOffsetAt(instant: Date): string {
+  const zone = EASTERN_OFFSET.formatToParts(instant).find(
+    (part) => part.type === "timeZoneName",
+  )!.value;
+  return zone === "GMT" ? "+00:00" : zone.slice(3);
+}
+
+/**
+ * `datetime-local` has no zone; the console reads and writes Eastern throughout.
+ *
+ * The offset is looked up for the instant rather than fixed, so a window either
+ * side of a DST change lands on the hour the admin typed. It is looked up twice
+ * because the lookup needs an instant and all we have is a wall clock: the first
+ * pass reads the offset at a rough guess, and the second reads it at the instant
+ * that guess produced — which is the same answer except for the few wall-clock
+ * hours a transition displaces, where the guess lands on the wrong side of it.
+ */
 function toInstant(value: string): Date | null | undefined {
   const trimmed = value.trim();
   if (trimmed.length === 0) return null;
-  const parsed = new Date(/[Zz]|[+-]\d{2}:\d{2}$/.test(trimmed) ? trimmed : `${trimmed}Z`);
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+
+  const zoned = /[Zz]|[+-]\d{2}:\d{2}$/.test(trimmed);
+  const parsed = new Date(zoned ? trimmed : `${trimmed}Z`);
+  if (Number.isNaN(parsed.getTime())) return undefined;
+  if (zoned) return parsed;
+
+  const guess = new Date(`${trimmed}${easternOffsetAt(parsed)}`);
+  return new Date(`${trimmed}${easternOffsetAt(guess)}`);
 }
 
 export interface MetaInput {

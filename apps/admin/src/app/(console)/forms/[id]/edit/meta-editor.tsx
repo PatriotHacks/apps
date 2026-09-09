@@ -15,9 +15,27 @@ const EDIT_POLICIES: { value: Form["editPolicy"]; label: string }[] = [
   { value: "full", label: "Fully editable after submit" },
 ];
 
-/** `datetime-local` carries no zone and the console renders UTC throughout. */
+/**
+ * `datetime-local` carries no zone and the console reads and writes Eastern, so
+ * the input has to be handed Eastern wall-clock rather than the instant's UTC
+ * face. `h23` rather than `hour12: false`, which can render midnight as "24".
+ */
+const INPUT_TIME = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  hourCycle: "h23",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
 function toInputValue(value: Date | null): string {
-  return value ? value.toISOString().slice(0, 16) : "";
+  if (!value) return "";
+  const part = Object.fromEntries(
+    INPUT_TIME.formatToParts(value).map(({ type, value: text }) => [type, text]),
+  );
+  return `${part.year}-${part.month}-${part.day}T${part.hour}:${part.minute}`;
 }
 
 export function MetaEditor({ form }: { form: Form }) {
@@ -80,7 +98,7 @@ export function MetaEditor({ form }: { form: Form }) {
           </Select>
         </Field>
 
-        <Field id="meta-opens-at" label="Opens (UTC)">
+        <Field id="meta-opens-at" label="Opens (ET)">
           <Input
             id="meta-opens-at"
             type="datetime-local"
@@ -89,7 +107,7 @@ export function MetaEditor({ form }: { form: Form }) {
           />
         </Field>
 
-        <Field id="meta-closes-at" label="Closes (UTC)">
+        <Field id="meta-closes-at" label="Closes (ET)">
           <Input
             id="meta-closes-at"
             type="datetime-local"
