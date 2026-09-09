@@ -37,6 +37,20 @@ export function listForms() {
 
 export type FormListRow = Awaited<ReturnType<typeof listForms>>[number];
 
+export type FormGroup = "open" | "draft" | "closed";
+
+/**
+ * `closed` is never written today, but a published form whose window has run out
+ * is closed whatever the column says. `now` is a parameter so one render sorts
+ * every row against the same instant instead of drifting row by row.
+ */
+export function formGroup(row: Pick<FormListRow, "status" | "closesAt">, now: Date): FormGroup {
+  if (row.status === "draft") return "draft";
+  if (row.status === "closed") return "closed";
+  if (row.closesAt && row.closesAt <= now) return "closed";
+  return "open";
+}
+
 export async function getFormDetail(id: string) {
   if (!isUuid(id)) return null;
 

@@ -14,7 +14,7 @@ import Link from "next/link";
 import { StatusBadge } from "@/components/status-badge";
 import { requireStaff } from "@/lib/auth";
 import { formatWindow } from "@/lib/format";
-import { listForms } from "@/lib/forms";
+import { formGroup, listForms, type FormGroup, type FormListRow } from "@/lib/forms";
 
 import { createDraftForm } from "./actions";
 import { DeleteForm } from "./delete-form";
@@ -25,35 +25,22 @@ const EDIT_POLICY: Record<Form["editPolicy"], string> = {
   full: "Full",
 };
 
-export default async function FormsPage() {
-  const [staff, rows] = await Promise.all([requireStaff(), listForms()]);
-  const isAdmin = staff.role === "admin";
+function FormsSection({
+  heading,
+  rows,
+  isAdmin,
+}: {
+  heading: string;
+  rows: FormListRow[];
+  isAdmin: boolean;
+}) {
+  if (rows.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-6 p-4 sm:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Forms</h1>
-          <p className="text-sm text-muted-foreground">
-            {rows.length} {rows.length === 1 ? "form" : "forms"}
-          </p>
-        </div>
-
-        {isAdmin ? (
-          // A plain form post rather than a client component: the action creates
-          // the draft and redirects into the builder, so there is nothing for
-          // the browser to hold on to in between.
-          <form action={createDraftForm}>
-            <Button type="submit" size="sm">
-              New form
-            </Button>
-          </form>
-        ) : null}
-      </div>
-
-      {rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground md:hidden">No forms yet.</p>
-      ) : null}
+    <section className="flex flex-col gap-3">
+      <h2 className="font-medium">
+        {heading} ({rows.length})
+      </h2>
 
       <DataList
         rows={rows}
@@ -103,14 +90,6 @@ export default async function FormsPage() {
           </TableHeader>
 
           <TableBody>
-            {rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={isAdmin ? 8 : 7} className="text-muted-foreground">
-                  No forms yet.
-                </TableCell>
-              </TableRow>
-            ) : null}
-
             {rows.map((row) => (
               <TableRow key={row.id}>
                 <TableCell>
@@ -156,6 +135,47 @@ export default async function FormsPage() {
           </TableBody>
         </Table>
       </DataList>
+    </section>
+  );
+}
+
+export default async function FormsPage() {
+  const [staff, rows] = await Promise.all([requireStaff(), listForms()]);
+  const isAdmin = staff.role === "admin";
+
+  // One instant for the whole render, so a window closing mid-page cannot put
+  // two rows on opposite sides of the same deadline.
+  const now = new Date();
+  const groups: Record<FormGroup, FormListRow[]> = { open: [], draft: [], closed: [] };
+  for (const row of rows) groups[formGroup(row, now)].push(row);
+
+  return (
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Forms</h1>
+          <p className="text-sm text-muted-foreground">
+            {rows.length} {rows.length === 1 ? "form" : "forms"}
+          </p>
+        </div>
+
+        {isAdmin ? (
+          // A plain form post rather than a client component: the action creates
+          // the draft and redirects into the builder, so there is nothing for
+          // the browser to hold on to in between.
+          <form action={createDraftForm}>
+            <Button type="submit" size="sm">
+              New form
+            </Button>
+          </form>
+        ) : null}
+      </div>
+
+      {rows.length === 0 ? <p className="text-sm text-muted-foreground">No forms yet.</p> : null}
+
+      <FormsSection heading="Open" rows={groups.open} isAdmin={isAdmin} />
+      <FormsSection heading="Drafts" rows={groups.draft} isAdmin={isAdmin} />
+      <FormsSection heading="Closed" rows={groups.closed} isAdmin={isAdmin} />
     </div>
   );
 }
