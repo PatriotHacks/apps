@@ -13,6 +13,7 @@ import {
 import { revalidatePath } from "next/cache";
 
 import { requireAdmin } from "@/lib/auth";
+import { type BlockPreviewResult } from "@/lib/blocks";
 import { deleteNewsletter, insertNewsletter, updateNewsletter } from "@/lib/newsletters";
 
 export type NewsletterDraft = {
@@ -27,10 +28,6 @@ export type SaveNewsletterResult =
 
 export type DeleteNewsletterResult =
   | { status: "deleted" }
-  | { status: "invalid"; message: string };
-
-export type NewsletterPreview =
-  | { status: "ok"; html: string; text: string }
   | { status: "invalid"; message: string };
 
 const reason = (cause: unknown) => (cause instanceof Error ? cause.message : String(cause));
@@ -74,7 +71,7 @@ function check(draft: NewsletterDraft): Checked {
  * poured through the layout shell, so what the iframe shows is what a recipient
  * would read. Every failure comes back as a sentence rather than as a stack.
  */
-export async function previewNewsletter(draft: NewsletterDraft): Promise<NewsletterPreview> {
+export async function previewNewsletter(draft: NewsletterDraft): Promise<BlockPreviewResult> {
   await requireAdmin();
 
   const checked = check(draft);

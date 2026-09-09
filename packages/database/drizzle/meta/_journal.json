@@ -71,6 +71,13 @@
       "when": 1788932864838,
       "tag": "0009_drop_design_description",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788932865838,
+      "tag": "0010_custom_email_templates",
+      "breakpoints": true
     }
   ]
 }

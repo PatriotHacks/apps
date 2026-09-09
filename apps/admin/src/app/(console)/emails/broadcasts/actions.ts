@@ -21,6 +21,7 @@ import {
 import { sendBroadcastChunk, type BroadcastProgress } from "@/lib/broadcast-send";
 import { countAudience, selectRecipients } from "@/lib/broadcast-sql";
 import { queryAsAdmin } from "@/lib/db";
+import { getTemplate } from "@/lib/email-templates";
 import { getNewsletter } from "@/lib/newsletters";
 import { unsubscribeUrlFor } from "@/lib/unsubscribe";
 
@@ -40,8 +41,15 @@ export type PreviewResult =
   | { status: "empty" }
   | { status: "invalid"; message: string };
 
-export type NewsletterBodyResult =
-  | { status: "ok"; bodyHtml: string; bodyText: string }
+/**
+ * A body loaded from something reusable: a saved newsletter or a custom template.
+ *
+ * `subject` is the template's own, carried across so an admin does not retype it
+ * on every broadcast that sends the template. `null` for a newsletter, which has
+ * a name and blocks and no subject to carry.
+ */
+export type BodySourceResult =
+  | { status: "ok"; subject: string | null; bodyHtml: string; bodyText: string }
   | { status: "invalid"; message: string };
 
 export type SendProgressResult =
@@ -79,7 +87,7 @@ function validate(draft: BroadcastDraft): string | null {
  * keeps its own copy of them — editing the newsletter afterwards changes nothing
  * that has already been written here.
  */
-export async function loadNewsletterBody(id: string): Promise<NewsletterBodyResult> {
+export async function loadNewsletterBody(id: string): Promise<BodySourceResult> {
   await requireAdmin();
 
   const newsletter = await getNewsletter(id);
@@ -90,7 +98,29 @@ export async function loadNewsletterBody(id: string): Promise<NewsletterBodyResu
     return { status: "invalid", message: "That newsletter has no blocks to load." };
   }
 
-  return { status: "ok", bodyHtml: html, bodyText: text };
+  return { status: "ok", subject: null, bodyHtml: html, bodyText: text };
+}
+
+/**
+ * The same thing for a template an admin built, plus the subject it owns. Only
+ * custom templates are loadable: a built-in references `form_title` and
+ * `rsvp_url`, which a broadcast has no way to fill, so one would fail validation
+ * the moment it arrived.
+ */
+export async function loadTemplateBody(key: string): Promise<BodySourceResult> {
+  await requireAdmin();
+
+  const template = await getTemplate(key);
+  if (!template || template.kind !== "custom") {
+    return { status: "invalid", message: "That template no longer exists." };
+  }
+
+  const { html, text } = compileNewsletter(template.blocks);
+  if (!html.trim() || !text.trim()) {
+    return { status: "invalid", message: "That template has no blocks to load." };
+  }
+
+  return { status: "ok", subject: template.subject, bodyHtml: html, bodyText: text };
 }
 
 /** Live count for the builder, including the number the unsubscribe list removes. */

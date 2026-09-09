@@ -1,4 +1,16 @@
-import { index, integer, jsonb, pgPolicy, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+  check,
+  index,
+  integer,
+  jsonb,
+  pgPolicy,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { authenticatedRole } from "drizzle-orm/supabase";
 
 import { broadcastStatus, emailStatus } from "./enums.ts";
@@ -17,18 +29,38 @@ const adminOnly = (name: string) =>
     withCheck: isAdmin(),
   });
 
+/**
+ * One table for both kinds of template. A key the code catalogue declares is
+ * built in: raw HTML an organizer edits, with the variables its send site can
+ * supply. Anything else is a template an admin built from blocks, and carries a
+ * label and a `blocks` array instead.
+ *
+ * SQL cannot know that catalogue, so it enforces only the pairing: both `name`
+ * and `blocks` or neither. `blocks` itself is validated by the zod schema in
+ * `@patriothacks/emails` on the way in and on the way out, the same as
+ * `newsletters.blocks`.
+ */
 export const emailTemplates = pgTable(
   "email_templates",
   {
     id: uuid("id").primaryKey().defaultRandom().notNull(),
     key: text("key").notNull(),
+    /** The admin's label. Null for a built-in, whose label lives in code. */
+    name: text("name"),
     subject: text("subject").notNull(),
     bodyHtml: text("body_html").notNull(),
     bodyText: text("body_text").notNull(),
+    /** Null for a built-in, which stays raw HTML. */
+    blocks: jsonb("blocks"),
     updatedBy: uuid("updated_by").references(() => profiles.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [unique("email_templates_key_unique").on(t.key), adminOnly("email_templates_all_admin")],
+  (t) => [
+    unique("email_templates_key_unique").on(t.key),
+    check("email_templates_custom_pair", sql`(name is null) = (blocks is null)`),
+    adminOnly("email_templates_all_admin"),
+  ],
 );
 
 export const broadcasts = pgTable(

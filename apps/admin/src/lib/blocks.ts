@@ -38,5 +38,15 @@ export const BLOCK_TYPES = [
 
 export const blankBlock = (type: NewsletterBlockType): NewsletterBlock => BLANK[type]();
 
-/** What a new newsletter opens on, empty and waiting rather than pre-worded. */
+/** What a new design opens on, empty and waiting rather than pre-worded. */
 export const starterBlocks = (): NewsletterBlock[] => [blankBlock("heading"), blankBlock("text")];
+
+/**
+ * What a preview action returns for a set of blocks: the compiled body, filled
+ * from the sample context and poured through the layout shell, or the one
+ * sentence saying why it could not be. Shared by both builders, so the preview
+ * pane is one component rather than two.
+ */
+export type BlockPreviewResult =
+  | { status: "ok"; html: string; text: string }
+  | { status: "invalid"; message: string };

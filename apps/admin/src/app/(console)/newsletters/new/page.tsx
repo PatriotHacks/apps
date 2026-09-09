@@ -2,8 +2,8 @@ import { BROADCAST_VARIABLES } from "@patriothacks/emails";
 import Link from "next/link";
 
 import { requireAdmin } from "@/lib/auth";
+import { starterBlocks } from "@/lib/blocks";
 
-import { starterBlocks } from "../blocks";
 import { NewsletterBuilder } from "../newsletter-builder";
 
 export default async function NewNewsletterPage() {

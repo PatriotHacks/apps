@@ -258,8 +258,11 @@ can review any submission; multiple reviews per submission are expected.
 
 ### Email
 
-**email_templates** — `id`, `key` (unique), `subject`, `body_html`, `body_text`, `updated_by`, `updated_at`.
-Seeded keys: `decision_accepted`, `decision_waitlisted`, `decision_rejected`, `rsvp_confirmed`.
+**email_templates** — `id`, `key` (unique), `name`, `subject`, `body_html`, `body_text`,
+`blocks jsonb`, `updated_by`, `created_at`, `updated_at`. Seeded keys: `decision_accepted`,
+`decision_waitlisted`, `decision_rejected`, `rsvp_confirmed`. `name` and `blocks` are null for those
+four and set for a template an admin built; a check constraint enforces both or neither, since SQL
+cannot read the code catalogue that decides which a key belongs to.
 
 **broadcasts** — `id`, `name`, `subject`, `body_html`, `body_text`, `audience_filter jsonb`,
 `status broadcast_status`, `recipient_count`, `created_by`, `created_at`, `sent_at`.
@@ -477,19 +480,38 @@ a confirmation email.
 all mentors), preview against a real recipient, send. Respects `email_unsubscribes`. Every recipient
 gets an `email_sends` row.
 
+The body comes from one of three places, chosen in the composer: a one-off written there, a custom
+email template, or a newsletter. Either reusable source is compiled on the server and copied onto the
+broadcast's own `body_html` and `body_text`, so audience selection and sending stay entirely with
+broadcasts and editing or deleting the source afterwards changes nothing already queued or sent. A
+template hands over its subject as well, since not retyping it on every broadcast that sends the
+template is half of what a template is for; a newsletter has no subject to hand over. Built-in
+templates are never offered as a source — their variables cannot be filled from a broadcast.
+
 At 2000 recipients, sending happens in batches with retry, not in a single request handler. Worker
 CPU limits make a synchronous 2000-send loop a non-starter.
 
 Templates are stored in the database with `{{variable}}` interpolation and edited in the console.
 The layout shell lives in `packages/emails`; organizers own the words, not the rendering.
 
+**Custom templates** — the four seeded keys are transactional: what each one means and which
+variables it may reference is code, because only the decision and RSVP send sites can supply a
+`{{form_title}}` or an `{{rsvp_url}}`. An admin can also create templates of their own, from the same
+typed blocks a newsletter is built from, and they live in the same `email_templates` table so the
+console keeps one list and one editor entry point — a key the catalogue declares opens the HTML
+editor, anything else opens the block builder. A custom template is restricted to the broadcast
+variables `{{full_name}}`, `{{email}}`, `{{year}}` and `{{unsubscribe_url}}`, which is exactly what
+makes one always sendable from a broadcast; anything else is rejected on save by the same gate the
+built-in editor uses. Its key is slugged from the name and prefixed `custom_`, so it can never
+collide with a catalogue key present or future, and it is assigned once at creation and never follows
+a rename, because `email_sends.template_key` records it. Deleting one is admin-only and confirmed
+first.
+
 **Newsletters** — a newsletter is a design, not a send. Organizers assemble a recurring issue from
 typed blocks (heading, paragraph, image, button, divider) in `/newsletters`, preview it, and save it
-to the `newsletters` table as jsonb. A broadcast then loads one, which compiles the blocks into its
-own `body_html` and `body_text` and copies them onto the broadcast row — so audience selection and
-sending stay entirely with broadcasts, and editing or deleting a design never changes anything
-already queued or sent. The compiler lives in `packages/emails` beside the layout shell: it emits
-body-level, table-based, inline-styled markup only, escapes every authored string while leaving
+to the `newsletters` table as jsonb. A broadcast then loads one as its body, on the terms above. The
+compiler lives in `packages/emails` beside the layout shell and is shared with custom templates: it
+emits body-level, table-based, inline-styled markup only, escapes every authored string while leaving
 `{{variable}}` intact for interpolation at send time, and validates every URL as `http:` or `https:`
 in the schema. Inline links are written as `[label](url)` and entered as form fields, so no organizer
 ever hand-writes an anchor.
