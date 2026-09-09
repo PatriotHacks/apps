@@ -17,6 +17,7 @@
 /* The apps import this stylesheet through node_modules, which Tailwind's
    automatic content detection skips. Point it at this package explicitly. */
 @source "../**/*.{ts,tsx}";
+@source "../../../form-engine/src/**/*.{ts,tsx}";
 
 /* Keep the `dark:` variant on the same three-state logic as the tokens. */
 @custom-variant dark {
