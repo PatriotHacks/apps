@@ -61,7 +61,7 @@ export function SendPanel({
 
   return (
     <div className="flex flex-col gap-3 rounded-md border border-border p-4">
-      <div className="flex flex-wrap gap-6 text-sm">
+      <div className="grid grid-cols-2 gap-4 text-sm sm:flex sm:flex-wrap sm:gap-6">
         <Stat label="Recipients" value={recipientCount} />
         <Stat label="Sent" value={live.sent} />
         <Stat label="Failed" value={live.failed} tone={live.failed > 0 ? "bad" : undefined} />

@@ -11,7 +11,7 @@ export default async function NewBroadcastPage() {
   const forms = await listFormChoices();
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6 p-4 sm:p-6">
       <div>
         <Link href="/emails/broadcasts" className="text-sm text-muted-foreground hover:underline">
           ← Broadcasts
