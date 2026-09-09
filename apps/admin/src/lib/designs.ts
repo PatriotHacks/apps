@@ -13,7 +13,6 @@ import { createClient } from "@/lib/supabase/server";
 const LIST_COLUMNS = {
   id: designAssets.id,
   title: designAssets.title,
-  description: designAssets.description,
   linkUrl: designAssets.linkUrl,
   storagePath: designAssets.storagePath,
   fileName: designAssets.fileName,
@@ -55,7 +54,6 @@ export async function getDesignAsset(id: string): Promise<DesignAssetRow | undef
 export function createDesignAsset(values: {
   id: string;
   title: string;
-  description: string | null;
   linkUrl: string | null;
   storagePath: string | null;
   fileName: string | null;

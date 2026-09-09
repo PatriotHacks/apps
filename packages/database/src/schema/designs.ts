@@ -20,7 +20,6 @@ export const designAssets = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom().notNull(),
     title: text("title").notNull(),
-    description: text("description"),
     linkUrl: text("link_url"),
     /** `{asset_id}/{file_name}` in the `designs` bucket. */
     storagePath: text("storage_path"),

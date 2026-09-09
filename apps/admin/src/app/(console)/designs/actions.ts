@@ -34,7 +34,6 @@ export type DesignDraft = {
   /** Minted in the browser, because the object was stored under it first. */
   id: string;
   title: string;
-  description: string;
   linkUrl: string;
   upload: DesignUpload | null;
 };
@@ -71,7 +70,6 @@ export async function addDesign(draft: DesignDraft): Promise<DesignResult> {
   const title = draft.title.trim();
   if (!title) return { ok: false, message: "A title is required." };
 
-  const description = draft.description.trim();
   const linkUrl = draft.linkUrl.trim();
 
   if (linkUrl && !isWebUrl(linkUrl)) {
@@ -104,7 +102,6 @@ export async function addDesign(draft: DesignDraft): Promise<DesignResult> {
     await createDesignAsset({
       id: draft.id,
       title,
-      description: description || null,
       linkUrl: linkUrl || null,
       storagePath: upload ? objectPath(draft.id, upload.fileName) : null,
       fileName: upload?.fileName ?? null,

@@ -76,10 +76,6 @@ export default async function DesignsPage() {
                 <div className="flex min-w-40 flex-1 flex-col gap-1">
                   <p className="font-medium break-words">{row.title}</p>
 
-                  {row.description ? (
-                    <p className="text-sm break-words text-muted-foreground">{row.description}</p>
-                  ) : null}
-
                   {row.linkUrl ? (
                     <a
                       href={row.linkUrl}
