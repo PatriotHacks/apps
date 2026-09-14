@@ -113,7 +113,13 @@ export default async function Home() {
                 {/* Signed out this goes to /login, which returns here after. The
                     middleware would redirect anyway; saying so up front is honest. */}
                 <Link
-                  href={claims ? `/${row.slug}` : `/login?next=${encodeURIComponent(`/${row.slug}`)}`}
+                  href={
+                    !claims
+                      ? `/login?next=${encodeURIComponent(`/${row.slug}`)}`
+                      : row.status === null || row.status === "draft"
+                        ? `/${row.slug}`
+                        : `/${row.slug}/review`
+                  }
                   className="shrink-0 whitespace-nowrap text-sm underline underline-offset-4"
                 >
                   {!claims
@@ -122,7 +128,7 @@ export default async function Home() {
                       ? "Start"
                       : row.status === "draft"
                         ? "Continue"
-                        : "View"}
+                        : "See submission"}
                 </Link>
               </li>
             ))}
