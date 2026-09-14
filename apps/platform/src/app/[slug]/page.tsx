@@ -25,6 +25,8 @@ export default async function FillPage({ params }: { params: Promise<{ slug: str
 
   const { form, definition, existing } = data;
   const state = windowState(form);
+  // A closed form has nothing to show someone who never started it.
+  if (state === "after" && existing === null) notFound();
   const explanation = windowExplanation(form, state);
 
   return (
