@@ -1,6 +1,6 @@
 import { forms, submissions } from "@patriothacks/database";
 import { AppShell, Button } from "@patriothacks/ui";
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, isNull, lte, or } from "drizzle-orm";
 import Link from "next/link";
 
 import { optionalClaims } from "@/lib/auth";
@@ -16,10 +16,18 @@ const ANON = { role: "anon" } as const;
 
 export default async function Home() {
   const claims = await optionalClaims();
+  const now = new Date();
 
   // `forms_select_published` limits a signed-in read to published, non-deleted
   // rows; `forms_select_anon` does the same for a signed-out one, and grants
   // nothing else — a visitor can see a form exists without seeing its questions.
+  // Neither policy knows the window, so it is filtered here, for everyone: a
+  // submitter whose form has closed reaches it through /submissions instead.
+  const inWindow = and(
+    or(isNull(forms.opensAt), lte(forms.opensAt, now)),
+    or(isNull(forms.closesAt), gt(forms.closesAt, now)),
+  );
+
   // The join only means anything with a user to join against.
   const rows = claims
     ? await withRls(claims, (tx) =>
@@ -35,7 +43,8 @@ export default async function Home() {
           .leftJoin(
             submissions,
             and(eq(submissions.formId, forms.id), eq(submissions.userId, claims.sub)),
-          ),
+          )
+          .where(inWindow),
       )
     : await withRls(ANON, (tx) =>
         tx
@@ -46,6 +55,7 @@ export default async function Home() {
             description: forms.description,
           })
           .from(forms)
+          .where(inWindow)
           .then((list) => list.map((row) => ({ ...row, status: null }))),
       );
 
