@@ -61,12 +61,13 @@ RESEND_API_KEY=                  # for email
 EMAIL_FROM=                      # e.g. PatriotHacks <apply@patriothacks.org>
 PLATFORM_URL=http://localhost:3000
 UNSUBSCRIBE_SECRET=              # any long random string: openssl rand -hex 32
-NEXT_PUBLIC_AUTH_PROVIDERS=password
+NEXT_PUBLIC_AUTH_PROVIDERS=password,magic_link,google,github
 ```
 
-`NEXT_PUBLIC_AUTH_PROVIDERS` decides which buttons the login page renders — any of `password`,
-`magic_link`, `google`, `github`, comma-separated. Enable the matching providers in the Supabase
-dashboard first; the app only draws what you list here.
+`NEXT_PUBLIC_AUTH_PROVIDERS` decides which buttons the platform login page renders — any of
+`password`, `magic_link`, `google`, `github`, comma-separated. The admin console is Google-only and
+ignores it. It is inlined at build time, so rebuild after changing it. Enable the matching providers
+in the Supabase dashboard first; the app only draws what you list here.
 
 ### 3. Create the schema
 
