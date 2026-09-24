@@ -16,7 +16,7 @@ import { type AuthProvider } from "@/lib/auth-providers";
 import { createClient } from "@/lib/supabase/client";
 
 const ERRORS: Record<string, string> = {
-  auth_failed: "That sign-in link is invalid or has expired.",
+  auth_failed: "That link is invalid or has expired.",
   not_authorized: "This account does not have console access.",
 };
 

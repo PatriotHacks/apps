@@ -80,7 +80,7 @@ export default async function Home() {
           ) : (
             <>
               <p className="text-sm text-muted-foreground">
-                Sign in to apply. You can see what is open without an account.
+                Sign in or create an account to apply. You can see what is open without an account.
               </p>
               <Button asChild size="sm">
                 <Link href="/login">Sign in</Link>
@@ -123,7 +123,7 @@ export default async function Home() {
                   className="shrink-0 whitespace-nowrap text-sm underline underline-offset-4"
                 >
                   {!claims
-                    ? "Sign in to apply"
+                    ? "Sign in or sign up to apply"
                     : row.status === null
                       ? "Start"
                       : row.status === "draft"
