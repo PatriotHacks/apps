@@ -76,7 +76,7 @@ export function LoginForm({
     setNotice(
       otpError
         ? { tone: "error", text: otpError.message }
-        : { tone: "success", text: "Check your email for a sign-in link." },
+        : { tone: "success", text: "Check your email for a link to continue." },
     );
     setPending(false);
   }
@@ -95,7 +95,7 @@ export function LoginForm({
   }
 
   return (
-    <AuthLayout wordmark="PatriotHacks" heading="Sign in to PatriotHacks">
+    <AuthLayout wordmark="PatriotHacks" heading="Sign in or create an account">
       {providers.length === 0 ? (
         <AuthNotice>
           No sign-in providers are configured. Set NEXT_PUBLIC_AUTH_PROVIDERS.
@@ -172,7 +172,7 @@ export function LoginForm({
                 disabled={pending || !email}
                 onClick={sendMagicLink}
               >
-                Email me a sign-in link
+                Email me a link
               </AuthActionButton>
             ) : null}
           </form>
