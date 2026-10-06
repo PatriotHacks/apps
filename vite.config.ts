@@ -28,6 +28,7 @@ const EXTERNAL: Record<string, string> = {
   '/sid': 'https://app.patriothacks.org/sid',
   '/kickoff': 'https://app.patriothacks.org/kickoff',
   '/bitlab': 'https://app.patriothacks.org/bitlab',
+  '/zohra': 'https://app.patriothacks.org/zohra',
 }
 
 function pageRoutes(): Plugin {

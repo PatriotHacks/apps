@@ -74,6 +74,12 @@
   status = 302
   force = true
 
+[[redirects]]
+  from = "/zohra"
+  to = "https://app.patriothacks.org/zohra"
+  status = 302
+  force = true
+
 # SPA fallback (must come last).
 [[redirects]]
   from = "/*"
