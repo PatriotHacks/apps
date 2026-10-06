@@ -13,7 +13,9 @@
     { "source": "/([kK][iI][cC][kK][oO][fF][fF])", "destination": "https://app.patriothacks.org/kickoff", "permanent": false },
     { "source": "/([kK][iI][cC][kK][oO][fF][fF])/", "destination": "https://app.patriothacks.org/kickoff", "permanent": false },
     { "source": "/([bB][iI][tT][lL][aA][bB])", "destination": "https://app.patriothacks.org/bitlab", "permanent": false },
-    { "source": "/([bB][iI][tT][lL][aA][bB])/", "destination": "https://app.patriothacks.org/bitlab", "permanent": false }
+    { "source": "/([bB][iI][tT][lL][aA][bB])/", "destination": "https://app.patriothacks.org/bitlab", "permanent": false },
+    { "source": "/([zZ][oO][hH][rR][aA])", "destination": "https://app.patriothacks.org/zohra", "permanent": false },
+    { "source": "/([zZ][oO][hH][rR][aA])/", "destination": "https://app.patriothacks.org/zohra", "permanent": false }
   ],
   "rewrites": [
     { "source": "/sponsor", "destination": "/sponsor.html" },
