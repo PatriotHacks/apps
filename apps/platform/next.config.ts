@@ -10,11 +10,6 @@ const nextConfig: NextConfig = {
   ],
   // `pg` resolves its driver at runtime; bundling it breaks that.
   serverExternalPackages: ["pg"],
-  async redirects() {
-    return [
-      { source: "/zohra", destination: "https://patriothacks.org/zohra", permanent: false },
-    ];
-  },
 };
 
 export default nextConfig;
