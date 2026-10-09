@@ -14,11 +14,11 @@ Every choice below was made explicitly. Where a decision is still open it is lis
 | Area | Decision |
 |---|---|
 | Repo | pnpm workspaces + Turborepo, two Next.js apps |
-| Hosting | Cloudflare Workers via `@opennextjs/cloudflare` |
+| Hosting | Vercel |
 | DNS | Cloudflare (`app.` and `admin.patriothacks.org`) |
 | Database | Supabase Postgres — local Docker for dev, hosted project for prod |
 | Schema | Drizzle ORM owns it; `drizzle-kit generate` + `drizzle-kit migrate` is the only migration tool |
-| Connection | Supavisor transaction-mode pooler (port 6543) from Workers |
+| Connection | Supavisor transaction-mode pooler (port 6543) at runtime |
 | Authorization | RLS-first; policies are the boundary, service role only in admin paths |
 | Auth | Supabase Auth; providers enabled in dashboard, login UI driven by env config |
 | Admin roles | `admin`, `organizer` |
@@ -86,36 +86,17 @@ will lie.
 
 ## 4. Hosting and runtime
 
-Both apps deploy to Cloudflare Workers through the OpenNext adapter.
+Both apps deploy to Vercel.
 
-```jsonc
-// wrangler.jsonc
-{
-  "main": ".open-next/worker.js",
-  "compatibility_date": "<date>",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "assets": { "binding": "ASSETS", "directory": ".open-next/assets" },
-  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "<worker-name>" }],
-  "r2_buckets": [{ "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "<worker>-cache" }]
-}
-```
-
-**Next.js version is pinned by the adapter** — `@opennextjs/cloudflare@1.20.6` declares
-`next: >=15.5.24 <16 || >=16.3.3`. Pinned to `next@15.5.25`. Read the peer range off the installed
-adapter rather than the docs; the published support policy is wider than any given release. Do not
-upgrade Next without checking adapter support first.
+Next.js is pinned to `next@15.5.25`.
 
 ### Database connection
 
-Workers connect through Supabase's Supavisor pooler in transaction mode, not Hyperdrive.
+The apps connect through Supabase's Supavisor pooler in transaction mode. RLS-first requires
+wrapping every user query in a transaction that sets `request.jwt.claims` and `set local role`, and
+Supavisor is built for exactly this pattern.
 
-Reasoning: RLS-first requires wrapping every user query in a transaction that sets
-`request.jwt.claims` and `set local role`. Cloudflare's own Hyperdrive documentation advises
-against using transactions to carry session state, and requires cache-disabled bindings for
-permission-dependent queries — which, under RLS, is every query. Supavisor is built for exactly
-this pattern and has no result cache to poison.
-
-- Runtime (Workers): Supavisor transaction mode, port **6543**
+- Runtime: Supavisor transaction mode, port **6543**
 - Migrations (CI and local, Node): direct connection or session mode, port **5432** — transaction-mode
   pooling is not safe for DDL
 - `pg` >= 8.13, client constructed **inside** the request handler, never at module scope
@@ -460,9 +441,6 @@ Streamed CSV of whatever the current filter selects. Two shapes worth noting:
   optional question.
 - **Grids expand.** A grid question becomes one column per row, not one column total.
 
-Streamed rather than buffered — a Worker has limited memory and 2000 submissions of long-form text
-will not fit comfortably.
-
 ---
 
 ## 11. Email
@@ -488,8 +466,7 @@ template hands over its subject as well, since not retyping it on every broadcas
 template is half of what a template is for; a newsletter has no subject to hand over. Built-in
 templates are never offered as a source — their variables cannot be filled from a broadcast.
 
-At 2000 recipients, sending happens in batches with retry, not in a single request handler. Worker
-CPU limits make a synchronous 2000-send loop a non-starter.
+At 2000 recipients, sending happens in batches with retry, not in a single request handler.
 
 Templates are stored in the database with `{{variable}}` interpolation and edited in the console.
 The layout shell lives in `packages/emails`; organizers own the words, not the rendering.
@@ -542,7 +519,7 @@ signed URL downloads under the name the file was uploaded with.
 - PNG, JPEG, WebP, GIF, SVG, PDF and ZIP, 25MB max
 - The browser uploads straight to storage on the admin's own session and a server action records
   the row afterwards. Nothing streams through the app: a server action body is capped at 1MB by
-  default, and pushing 25MB through a Worker is the wrong shape.
+  default.
 - Which means type and size are enforced by the bucket's own `allowed_mime_types` and
   `file_size_limit` rather than by magic bytes — there are no bytes on the server to inspect. The
   `accept` attribute and the check in the action only keep the console from offering what the
@@ -573,7 +550,7 @@ No fixed deadline, so this is sequenced by dependency rather than by triage.
 | 7 | Decisions and review notes |
 | 8 | Email: templates, decisions, RSVP |
 | 9 | Broadcasts, audience builder, unsubscribe |
-| 10 | Cloudflare deploy, staging project, full dry run |
+| 10 | Vercel deploy, staging project, full dry run |
 
 Phase 4 is the single largest and riskiest piece. Phase 2 deliberately ships without branching so
 the type registry is proven against real submissions before the graph logic lands on top.
@@ -602,8 +579,8 @@ over generated form graphs, not just example tests.
 **The RLS wrapper is silently skippable.** Forgetting `db.rls(...)` bypasses every policy without
 erroring. The lint rule and the module boundary in Section 7 are load-bearing, not nice-to-have.
 
-**Workers plus transaction-per-query is unproven here.** Supavisor is built for it, but this specific
-combination — OpenNext, node-postgres over Supavisor, a transaction on every read — should get a
+**Transaction-per-query is unproven here.** Supavisor is built for it, but this specific
+combination — node-postgres over Supavisor, a transaction on every read — should get a
 spike in Phase 0 rather than a discovery in Phase 6.
 
 **Form immutability has no escape hatch yet.** See Open Items 1. Shipping without deciding this
