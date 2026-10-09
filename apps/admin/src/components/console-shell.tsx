@@ -13,11 +13,13 @@ import { type Staff } from "@/lib/auth";
  *
  * Below `md` the sidebar strip is dropped and the same `ConsoleSidebar` is
  * rendered inside the header menu instead — two rows of chrome become one.
+ *
+ * Printing drops both, so the print export is the page and nothing else.
  */
 export function ConsoleShell({ staff, children }: { staff: Staff; children: React.ReactNode }) {
   return (
     <AppShell
-      className="[--console-header-h:calc(3.5rem+1px)] max-md:[&_[data-slot=app-shell-sidebar]]:hidden"
+      className="[--console-header-h:calc(3.5rem+1px)] max-md:[&_[data-slot=app-shell-sidebar]]:hidden print:[&_[data-slot=app-shell-header]]:hidden print:[&_[data-slot=app-shell-sidebar]]:hidden"
       header={
         <div className="flex h-14 items-center justify-between gap-4 px-4 sm:px-6">
           <Link href="/forms" className="flex min-w-0 items-center gap-2">
