@@ -173,6 +173,14 @@ export default async function FormSubmissionsPage({
           <Button asChild size="sm">
             <a href={`${base}/export?${exportSearch}`}>Export CSV</a>
           </Button>
+          <Button asChild size="sm">
+            <a href={`${base}/export/xlsx?${exportSearch}`}>Export XLSX</a>
+          </Button>
+          <Button asChild size="sm">
+            <a href={`${base}/print?${exportSearch}`} target="_blank" rel="noopener">
+              Export PDF
+            </a>
+          </Button>
         </div>
       </div>
 
