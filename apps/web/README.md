@@ -55,7 +55,8 @@ Almost everything is data, not JSX.
   is enough; you should not need to touch the JSX.
 - Every field's `name` **must match a column** in the matching Supabase table.
   If you add a question here, add the column in
-  [`schema.sql`](schema.sql) too.
+  [`packages/database/src/schema/website.ts`](../../packages/database/src/schema/website.ts)
+  and generate a migration.
 
 **[`src/sponsor/config.ts`](src/sponsor/config.ts)** — the `/sponsor` page:
 
@@ -93,15 +94,14 @@ itself is safe to ship.)
 
 ### Wire up the volunteer & judge forms (Supabase)
 
-The `/volunteer` and `/judge` forms write to two Supabase tables.
+The `/volunteer` and `/judge` forms write to the `volunteers` and `judges`
+tables in the platform's Supabase project. Their schema lives in
+[`packages/database/src/schema/website.ts`](../../packages/database/src/schema/website.ts)
+and is created by the Drizzle migrations in `packages/database/drizzle`.
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. **SQL Editor → New query**, paste all of
-   [`schema.sql`](schema.sql), and **Run**. That creates the
-   `volunteers` and `judges` tables and locks them down (see below).
-3. **Project Settings → API**: copy the **Project URL** and the **anon/public**
-   key.
-4. Locally: `cp .env.example .env` and paste both values in.
+1. In the platform project's dashboard, **Project Settings → API**: copy the
+   **Project URL** and the **anon/public** key.
+2. Locally: `cp .env.example .env` and paste both values in.
    For production: set the same two variables (`VITE_SUPABASE_URL` and
    `VITE_SUPABASE_ANON_KEY`) in your Vercel project settings, then
    redeploy — Vite inlines them at build time, so a redeploy is required for a
@@ -110,10 +110,10 @@ The `/volunteer` and `/judge` forms write to two Supabase tables.
 Until both are set, each form renders a visible "not connected to a database"
 warning rather than silently discarding submissions.
 
-Read the responses in **Table Editor → volunteers / judges**.
+Read the responses in the admin console under **Volunteers & judges**.
 
 **How the security works.** The anon key ships inside the JavaScript bundle —
-that is normal and expected. `schema.sql` revokes every default grant on the two
+that is normal and expected. The migration revokes every default grant on the two
 tables and grants `anon` nothing but `INSERT`, so that key can add a row and
 can never read one. The applicant list is not reachable from the browser.
 
