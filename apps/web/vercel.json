@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/([aA][pP][pP][lL][yY])", "destination": "https://app.patriothacks.org/", "permanent": false },
+    { "source": "/([aA][pP][pP][lL][yY])/", "destination": "https://app.patriothacks.org/", "permanent": false },
+    { "source": "/001", "destination": "https://app.patriothacks.org/001", "permanent": false },
+    { "source": "/001/", "destination": "https://app.patriothacks.org/001", "permanent": false },
+    { "source": "/([sS][iI][dD])", "destination": "https://app.patriothacks.org/sid", "permanent": false },
+    { "source": "/([sS][iI][dD])/", "destination": "https://app.patriothacks.org/sid", "permanent": false },
+    { "source": "/([kK][iI][cC][kK][oO][fF][fF])", "destination": "https://app.patriothacks.org/kickoff", "permanent": false },
+    { "source": "/([kK][iI][cC][kK][oO][fF][fF])/", "destination": "https://app.patriothacks.org/kickoff", "permanent": false },
+    { "source": "/([bB][iI][tT][lL][aA][bB])", "destination": "https://app.patriothacks.org/bitlab", "permanent": false },
+    { "source": "/([bB][iI][tT][lL][aA][bB])/", "destination": "https://app.patriothacks.org/bitlab", "permanent": false },
+    { "source": "/([zZ][oO][hH][rR][aA])", "destination": "https://app.patriothacks.org/zohra", "permanent": false },
+    { "source": "/([zZ][oO][hH][rR][aA])/", "destination": "https://app.patriothacks.org/zohra", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/sponsor", "destination": "/sponsor.html" },
+    { "source": "/volunteer", "destination": "/volunteer.html" },
+    { "source": "/judge", "destination": "/judge.html" },
+    { "source": "/book", "destination": "/book.html" },
+    { "source": "/privacy", "destination": "/privacy.html" },
+    { "source": "/tos", "destination": "/tos.html" }
+  ]
+}
