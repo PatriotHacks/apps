@@ -14,12 +14,19 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/newsletters", label: "Newsletter", adminOnly: true },
   { href: "/designs", label: "Designs" },
   { href: "/emails", label: "Email", adminOnly: true },
+  { href: "/applications", label: "Volunteers & judges", adminOnly: true },
 ];
 
 /** Secondary nav inside the email section, rendered by its layout. */
 export const EMAIL_TABS: NavItem[] = [
   { href: "/emails/templates", label: "Templates" },
   { href: "/emails/broadcasts", label: "Broadcasts" },
+];
+
+/** Secondary nav inside the applications section, rendered by its layout. */
+export const APPLICATION_TABS: NavItem[] = [
+  { href: "/applications/volunteers", label: "Volunteers" },
+  { href: "/applications/judges", label: "Judges" },
 ];
 
 export function navItemsFor(role: StaffRole): NavItem[] {
