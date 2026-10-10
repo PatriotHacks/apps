@@ -5,7 +5,7 @@
  * acknowledgements here and both pages follow.
  *
  * IMPORTANT: every `name` below must match a column in the matching
- * Supabase table (see schema.sql). The form submits the field
+ * Supabase table (see packages/database/src/schema/website.ts). The form submits the field
  * names verbatim as the insert payload.
  * ===================================================================== */
 
@@ -18,7 +18,7 @@ export type Field =
       name: string
       label: string
       placeholder: string
-      /** Mirrors the CHECK constraint in schema.sql. */
+      /** Mirrors the CHECK constraint in packages/database/src/schema/website.ts. */
       maxLength: number
       autoComplete?: string
     }

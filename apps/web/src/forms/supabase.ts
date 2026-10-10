@@ -4,7 +4,7 @@
  * Credentials come from the environment (see .env.example). The anon key
  * is public by design: it ships inside the JavaScript bundle, and the
  * tables are locked down with Row Level Security so it can only INSERT.
- * It can never read the applicant list. See schema.sql.
+ * It can never read the applicant list. See packages/database/src/schema/website.ts.
  * ===================================================================== */
 
 import { createClient } from '@supabase/supabase-js'
