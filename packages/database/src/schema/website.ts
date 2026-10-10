@@ -1,13 +1,15 @@
 import { sql } from "drizzle-orm";
 import { boolean, check, pgPolicy, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { anonRole } from "drizzle-orm/supabase";
+import { anonRole, authenticatedRole } from "drizzle-orm/supabase";
+
+import { isAdmin } from "./predicates.ts";
 
 /**
  * Volunteer and judge applications from the public website, which submits them
- * with the anon key. Anon may INSERT and nothing else; the grants that make that
- * true are revoked and re-granted by hand in the migration. A repeat email fails
- * the `lower(email)` unique index with 23505, which the form reports as already
- * applied.
+ * with the anon key. Anon may INSERT and nothing else, and only admins read them
+ * in the console; the grants that make that true are revoked and re-granted by
+ * hand in the migration. A repeat email fails the `lower(email)` unique index
+ * with 23505, which the form reports as already applied.
  */
 export const volunteers = pgTable(
   "volunteers",
@@ -36,6 +38,11 @@ export const volunteers = pgTable(
       for: "insert",
       to: anonRole,
       withCheck: sql`true`,
+    }),
+    pgPolicy("volunteers_select_admin", {
+      for: "select",
+      to: authenticatedRole,
+      using: isAdmin(),
     }),
   ],
 );
@@ -73,6 +80,11 @@ export const judges = pgTable(
       for: "insert",
       to: anonRole,
       withCheck: sql`true`,
+    }),
+    pgPolicy("judges_select_admin", {
+      for: "select",
+      to: authenticatedRole,
+      using: isAdmin(),
     }),
   ],
 );

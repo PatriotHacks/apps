@@ -1,13 +1,12 @@
 -- Volunteer and judge applications move here from the website's own Supabase
 -- project. The site submits them with the anon key, so anon may INSERT and do
--- nothing else.
+-- nothing else; admins read them in the console under `*_select_admin`.
 --
--- The policies alone are not enough: Supabase's default privileges on `public`
+-- Policies alone are not enough: Supabase's default privileges on `public`
 -- grant `anon` and `authenticated` every table privilege, and a policy removes
--- none of them. Revoke everything, then grant back only INSERT. With no SELECT
--- grant a repeat email still trips the `lower(email)` unique index (23505) without
--- the site ever reading the table. The console reads both tables through the
--- service-role connection.
+-- none of them. Revoke everything, then grant back only what the policies use.
+-- With no SELECT for anon, a repeat email still trips the `lower(email)` unique
+-- index (23505) without the site ever reading the table.
 CREATE TABLE "judges" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -57,8 +56,12 @@ ALTER TABLE "volunteers" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
 CREATE UNIQUE INDEX "judges_email_unique" ON "judges" USING btree (lower("email"));--> statement-breakpoint
 CREATE UNIQUE INDEX "volunteers_email_unique" ON "volunteers" USING btree (lower("email"));--> statement-breakpoint
 CREATE POLICY "Anyone can submit a judge application" ON "judges" AS PERMISSIVE FOR INSERT TO "anon" WITH CHECK (true);--> statement-breakpoint
+CREATE POLICY "judges_select_admin" ON "judges" AS PERMISSIVE FOR SELECT TO "authenticated" USING (public.is_admin((select auth.uid())));--> statement-breakpoint
 CREATE POLICY "Anyone can submit a volunteer application" ON "volunteers" AS PERMISSIVE FOR INSERT TO "anon" WITH CHECK (true);--> statement-breakpoint
+CREATE POLICY "volunteers_select_admin" ON "volunteers" AS PERMISSIVE FOR SELECT TO "authenticated" USING (public.is_admin((select auth.uid())));--> statement-breakpoint
 REVOKE ALL ON "volunteers" FROM anon, authenticated;--> statement-breakpoint
 REVOKE ALL ON "judges" FROM anon, authenticated;--> statement-breakpoint
 GRANT INSERT ON "volunteers" TO anon;--> statement-breakpoint
-GRANT INSERT ON "judges" TO anon;
+GRANT INSERT ON "judges" TO anon;--> statement-breakpoint
+GRANT SELECT ON "volunteers" TO authenticated;--> statement-breakpoint
+GRANT SELECT ON "judges" TO authenticated;

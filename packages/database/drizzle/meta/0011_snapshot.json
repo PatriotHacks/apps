@@ -1,5 +1,5 @@
 {
-  "id": "c3cc41c5-5096-48f6-bf77-8a1f7064d335",
+  "id": "b34e1abf-a537-4b8c-ab5f-8aca3819b76b",
   "prevId": "393b3db0-b8d5-4c6e-9ed7-2b7048713e90",
   "version": "7",
   "dialect": "postgresql",
@@ -2146,6 +2146,15 @@
             "anon"
           ],
           "withCheck": "true"
+        },
+        "judges_select_admin": {
+          "name": "judges_select_admin",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_admin((select auth.uid()))"
         }
       },
       "checkConstraints": {
@@ -2288,6 +2297,15 @@
             "anon"
           ],
           "withCheck": "true"
+        },
+        "volunteers_select_admin": {
+          "name": "volunteers_select_admin",
+          "as": "PERMISSIVE",
+          "for": "SELECT",
+          "to": [
+            "authenticated"
+          ],
+          "using": "public.is_admin((select auth.uid()))"
         }
       },
       "checkConstraints": {
