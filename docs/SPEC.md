@@ -407,6 +407,8 @@ Behavior:
 /newsletters                 saved newsletter designs
 /newsletters/new             block builder
 /newsletters/[id]            block builder
+/applications/volunteers     volunteer applications from the website (admin only)
+/applications/judges         judge applications from the website (admin only)
 /settings/admins             role management (admin only)
 ```
 
