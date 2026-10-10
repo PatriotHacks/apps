@@ -1,6 +1,6 @@
 /**
  * Announcement bar. Sits above the nav inside the fixed header, so it stays
- * visible while scrolling. `/apply` is a same-origin 302 to the application
+ * visible while scrolling. `/apply` is a same-origin 307 to the application
  * site (see vercel.json), which keeps the printed and spoken
  * URL on patriothacks.org.
  */
