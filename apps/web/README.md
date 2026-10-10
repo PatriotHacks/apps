@@ -19,12 +19,14 @@ the only ones that pull in the Supabase client.
 
 ## Run it locally
 
+From the monorepo root:
+
 ```bash
-npm install
-npm run dev      # http://localhost:5173  (and /sponsor, /book)
-npm run build    # type-check + production build → dist/
-npm run preview  # serve the production build
-npm run lint     # type-check only
+pnpm install
+pnpm --filter @patriothacks/web dev      # http://localhost:5173  (and /sponsor, /book)
+pnpm --filter @patriothacks/web build    # type-check + production build → dist/
+pnpm --filter @patriothacks/web preview  # serve the production build
+pnpm --filter @patriothacks/web lint     # type-check only
 ```
 
 ## Editing content
