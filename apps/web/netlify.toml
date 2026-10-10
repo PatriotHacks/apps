@@ -1,0 +1,87 @@
+# Netlify config (used only if you deploy to Netlify instead of Vercel)
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Sponsor page — a Vite entry built to /sponsor.html.
+[[redirects]]
+  from = "/sponsor"
+  to = "/sponsor.html"
+  status = 200
+
+# Application forms — Vite entries built to /volunteer.html and /judge.html.
+[[redirects]]
+  from = "/volunteer"
+  to = "/volunteer.html"
+  status = 200
+
+[[redirects]]
+  from = "/judge"
+  to = "/judge.html"
+  status = 200
+
+# Booking page — the standalone public/book.html for the bare /book path.
+[[redirects]]
+  from = "/book"
+  to = "/book.html"
+  status = 200
+
+# Legal pages — Vite entries that render the Markdown in /content.
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
+[[redirects]]
+  from = "/tos"
+  to = "/tos.html"
+  status = 200
+
+# Application — off-site on the app subdomain. 302 rather than 301 so the
+# target can move between seasons without browsers caching the old URL.
+# Netlify's edge normalizes trailing slashes before matching, so each rule
+# below already covers both /apply and /apply/ — adding an explicit slash
+# variant would be a redundant rule that risks an infinite redirect loop.
+# `from` takes no regex, so the case-insensitive matching configured in
+# vercel.json has no equivalent here and these stay exact-case, Vercel only.
+[[redirects]]
+  from = "/apply"
+  to = "https://app.patriothacks.org/"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/001"
+  to = "https://app.patriothacks.org/001"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/sid"
+  to = "https://app.patriothacks.org/sid"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/kickoff"
+  to = "https://app.patriothacks.org/kickoff"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/bitlab"
+  to = "https://app.patriothacks.org/bitlab"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/zohra"
+  to = "https://app.patriothacks.org/zohra"
+  status = 302
+  force = true
+
+# SPA fallback (must come last).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
