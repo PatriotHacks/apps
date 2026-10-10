@@ -6,7 +6,7 @@ import tailwindcss from '@tailwindcss/vite'
  * Bare paths for the non-root pages. Each page is a single flat .html file
  * rather than a <name>/index.html folder — Vite names a page's output after
  * its input path, so `volunteer.html` builds to `dist/volunteer.html` and the
- * rewrites below (and in vercel.json / netlify.toml) map the clean `/volunteer`
+ * rewrites below (and in vercel.json) map the clean `/volunteer`
  * URL onto it. Same URLs, no directory per page.
  *
  * /sponsor, /volunteer and /judge are Vite entries; /book is a standalone

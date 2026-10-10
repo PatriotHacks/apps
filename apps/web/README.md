@@ -19,12 +19,14 @@ the only ones that pull in the Supabase client.
 
 ## Run it locally
 
+From the monorepo root:
+
 ```bash
-npm install
-npm run dev      # http://localhost:5173  (and /sponsor, /book)
-npm run build    # type-check + production build → dist/
-npm run preview  # serve the production build
-npm run lint     # type-check only
+pnpm install
+pnpm --filter @patriothacks/web dev      # http://localhost:5173  (and /sponsor, /book)
+pnpm --filter @patriothacks/web build    # type-check + production build → dist/
+pnpm --filter @patriothacks/web preview  # serve the production build
+pnpm --filter @patriothacks/web lint     # type-check only
 ```
 
 ## Editing content
@@ -101,7 +103,7 @@ The `/volunteer` and `/judge` forms write to two Supabase tables.
    key.
 4. Locally: `cp .env.example .env` and paste both values in.
    For production: set the same two variables (`VITE_SUPABASE_URL` and
-   `VITE_SUPABASE_ANON_KEY`) in your Vercel or Netlify project settings, then
+   `VITE_SUPABASE_ANON_KEY`) in your Vercel project settings, then
    redeploy — Vite inlines them at build time, so a redeploy is required for a
    change to take effect.
 
@@ -148,20 +150,19 @@ person may apply to volunteer *and* to judge.
 
 ## Deploy
 
-One project, one build. Configured for **Vercel** (`vercel.json`) and
-**Netlify** (`netlify.toml`): build command `npm run build`, output `dist/`,
-**root directory the repo root**.
+One project, one build. Deployed on **Vercel** (`vercel.json`): build command
+`pnpm build`, output `dist/`, **root directory `apps/web`**.
 
-Each page is one flat `<name>.html` file at the repo root, not a
+Each page is one flat `<name>.html` file at the `apps/web` root, not a
 `<name>/index.html` folder. Vite names a page's build output after its input
 path, so `volunteer.html` becomes `dist/volunteer.html`, and the rewrites map
 the clean `/volunteer` URL onto it — same URLs, one file per page instead of one
 directory per page. `vite.config.ts` applies the same mapping to the dev and
 preview servers, so every URL resolves identically in all three.
 
-> Adding a new page means touching **four** places: a new `<name>.html` at the
-> root, `rollupOptions.input` and `PAGES` in `vite.config.ts`, `rewrites` in
-> `vercel.json`, and `redirects` in `netlify.toml`.
+> Adding a new page means touching **three** places: a new `<name>.html` at the
+> root, `rollupOptions.input` and `PAGES` in `vite.config.ts`, and `rewrites` in
+> `vercel.json`.
 
 `/privacy` and `/tos` are the two legal documents. Each is a Vite entry that
 imports a Markdown file from `content/` with `?raw` and renders it through
@@ -172,8 +173,8 @@ Nothing about a document's structure is hardcoded, so headings, tables and
 lists come through as written.
 
 `/apply`, `/001`, `/sid`, `/kickoff`, `/bitlab` and `/zohra` are not pages — they are
-temporary redirects off the site, declared in `redirects` in `vercel.json`,
-`netlify.toml`, and `EXTERNAL` in `vite.config.ts`:
+temporary redirects off the site, declared in `redirects` in `vercel.json`
+and `EXTERNAL` in `vite.config.ts`:
 
 - `/apply` → <https://app.patriothacks.org/>
 - `/001` → <https://app.patriothacks.org/001>
@@ -187,14 +188,12 @@ trailing slash**, so `/bitlab`, `/BitLab` and `/BITLAB/` all land in the same
 place. Vercel compiles a redirect `source` with `sensitive: true` and
 `strict: true` and offers no option to relax either, so every slug is written
 as a character class (`/([bB][iI][tT][lL][aA][bB])`) and listed twice — once
-bare, once with the trailing slash. Netlify normalizes trailing slashes at the
-edge and its `from` accepts no regex, so the Netlify rules stay single
-exact-case entries; the dev and preview servers lowercase the path before the
-`EXTERNAL` lookup to match Vercel.
+bare, once with the trailing slash. The dev and preview servers lowercase the
+path before the `EXTERNAL` lookup to match Vercel.
 
 Temporary rather than permanent so the application host can change between
 seasons without browsers holding a cached redirect — Vercel sends 307 for
-`"permanent": false`, Netlify the 302 set in `netlify.toml`.
+`"permanent": false`.
 
 Remember to set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in the host's
 environment variables, or the two form pages will ship unconfigured.
